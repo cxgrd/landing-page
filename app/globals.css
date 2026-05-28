@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+:root {
+  --background: #05070f;
+  --foreground: #f4f7ff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+
+body {
+  min-height: 100%;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), "Segoe UI", Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(58rem 36rem at -5% -10%, rgba(56, 189, 248, 0.13), transparent 60%),
+    radial-gradient(48rem 34rem at 105% 2%, rgba(139, 92, 246, 0.16), transparent 60%),
+    radial-gradient(36rem 26rem at 50% 110%, rgba(59, 130, 246, 0.12), transparent 70%),
+    var(--background);
+}
+
+::selection {
+  background: rgba(99, 102, 241, 0.35);
+  color: #ffffff;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes floatOrb {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -22px, 0) scale(1.04);
+  }
+}
+
+@keyframes pulseGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(59, 130, 246, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(59, 130, 246, 0.32);
+  }
+}
+
+.grid-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0.3;
+  background-image: linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(circle at 50% 30%, black 25%, transparent 80%);
+}
+
+.aurora-orb {
+  position: absolute;
+  width: 28rem;
+  height: 28rem;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.34;
+  animation: floatOrb 14s ease-in-out infinite;
+}
+
+.aurora-orb--one {
+  left: -7rem;
+  top: -6rem;
+  background: rgba(59, 130, 246, 0.55);
+}
+
+.aurora-orb--two {
+  right: -10rem;
+  top: 15%;
+  background: rgba(139, 92, 246, 0.52);
+  animation-delay: -5s;
+}
+
+.aurora-orb--three {
+  left: 28%;
+  bottom: -11rem;
+  background: rgba(34, 211, 238, 0.45);
+  animation-delay: -8s;
+}
+
+.gradient-ring {
+  background: linear-gradient(120deg, #60a5fa, #818cf8, #22d3ee);
+  background-size: 220% 220%;
+  animation: gradientShift 9s ease infinite;
+}
+
+.animated-gradient-text {
+  background-size: 220% 220%;
+  animation: gradientShift 7s ease infinite;
+}
+
+.glass-surface {
+  background: linear-gradient(140deg, rgba(10, 16, 30, 0.86), rgba(8, 10, 20, 0.7));
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  backdrop-filter: blur(14px);
+}
+
+.feature-card {
+  transition: transform 260ms ease, border-color 260ms ease, box-shadow 260ms ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(96, 165, 250, 0.55);
+  box-shadow: 0 18px 42px rgba(2, 6, 23, 0.42);
+}
+
+.command-chip {
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: linear-gradient(110deg, rgba(30, 41, 59, 0.55), rgba(15, 23, 42, 0.35));
+  animation: pulseGlow 3.4s ease-in-out infinite;
+}
+
+.gradient-border {
+  background: linear-gradient(115deg, rgba(96, 165, 250, 0.95), rgba(129, 140, 248, 0.9), rgba(34, 211, 238, 0.95));
+  background-size: 220% 220%;
+  animation: gradientShift 8s ease infinite;
+}
+
+.waitlist-form-shell {
+  transition: transform 250ms ease, box-shadow 250ms ease;
+}
+
+.waitlist-form-shell:hover {
+  transform: translateY(-2px);
+}
+
+.waitlist-form-shell:focus-within {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35), 0 18px 38px rgba(2, 6, 23, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
