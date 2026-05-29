@@ -14,13 +14,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Retrieve from environment - these must be set in .env.local
-    const ownerEmail = process.env.OWNER_EMAIL || 'owner@example.com';
-    const githubLink = process.env.GITHUB_ORG_LINK || 'https://github.com';
+    const ownerEmail = process.env.OWNER_EMAIL || '';
+    const githubLink = process.env.GITHUB_ORG_LINK || '';
+    const fromemail = process.env.FROM_EMAIL || '';
 
     // Send confirmation email to user
     await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: fromemail,
       to: email,
       subject: 'Welcome to CXGRD - Your Architectural Guardrail',
       html: `
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     // Send notification email to owner
     await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: fromemail,
       to: ownerEmail,
       subject: `🎉 New Waitlist Signup: ${email}`,
       html: `
