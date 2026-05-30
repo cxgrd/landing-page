@@ -21,11 +21,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: "CXGRD | AI Architectural Guardrail for Your Codebase",
     description: "Automated architectural guardrail that maps dependencies and calculates blast radius before AI makes changes. Move fast without breaking your architecture.",
-    url: "https://cxgrd.netlify.app",
+    url: "https://cxgrd.com",
     siteName: "CXGRD",
     images: [
       {
-        url: "/Homepage.png",
+        url: "https://cxgrd.com/Homepage.png",
         width: 1200,
         height: 630,
         alt: "CXGRD Logo",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "CXGRD | AI Architectural Guardrail for Your Codebase",
     description: "Automated architectural guardrail that maps dependencies and calculates blast radius before AI makes changes. Move fast without breaking your architecture.",
-    images: ["/Homepage.png"],
+    images: ["https://cxgrd.com/Homepage.png"],
   },
 };
 
