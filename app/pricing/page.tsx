@@ -201,7 +201,7 @@ export default function PricingPage() {
             For enterprise deployments, SSO, and custom integrations, let's talk.
           </p>
           <a
-            href="mailto:sales@cxgrd.dev"
+            href="mailto:hello@cxgrd.com"
             className="mt-6 inline-flex items-center gap-2 rounded-lg border border-white/15 px-6 py-3 text-sm font-medium text-slate-200 transition-all duration-300 hover:border-blue-300/60 hover:text-white hover:shadow-lg hover:shadow-blue-500/20"
           >
             Contact Sales
