@@ -117,8 +117,11 @@ export default function Home() {
             <a href="#architecture" className="transition-colors hover:text-white">
               Architecture
             </a>
-            <a href="#roadmap" className="transition-colors hover:text-white">
-              Roadmap
+            <a href="/pricing" className="transition-colors hover:text-white">
+              Pricing
+            </a>
+            <a href="https://cxgrd.com/docs" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-white">
+              Docs
             </a>
           </nav>
 
@@ -136,11 +139,11 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl px-6 pb-24 pt-14 sm:pt-20">
+      <main className="mx-auto w-full max-w-6xl px-6 pb-24 pt-14 sm:pt-20 mt-12 sm:mt-20">
         <section id="home" className="mx-auto max-w-4xl text-center">
           <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-4 py-2 text-xs font-medium text-blue-100">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Private alpha · CLI in active development
+            Automated Architectural Guardrail for AI-Native Development
           </div>
 
           <h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight text-white sm:text-6xl">
@@ -161,18 +164,9 @@ export default function Home() {
             <span className="command-chip rounded-full px-3 py-1.5">Persistent .cg/ repo memory</span>
             <span className="command-chip rounded-full px-3 py-1.5">Compiler-backed validation</span>
           </div>
-
-          <div className="mt-10">
-            <WaitlistForm />
-          </div>
-
-          <p className="mx-auto mt-4 max-w-2xl text-xs text-slate-400 sm:text-sm">
-            The tool is not fully ready yet — this waitlist is for early adopters who want private alpha access,
-            launch updates, and beta invites.
-          </p>
         </section>
 
-        <section id="why" className="mt-16 sm:mt-20">
+        <section id="why" className="mt-28 sm:mt-36">
           <div className="mb-8">
             <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Why teams are interested</h2>
             <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
@@ -191,7 +185,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="how-it-works" className="mt-16 sm:mt-20">
+        <section id="how-it-works" className="mt-28 sm:mt-36">
           <div className="mb-8">
             <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">How CXGRD works</h2>
             <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
@@ -209,7 +203,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="architecture" className="mt-16 sm:mt-20">
+        <section id="architecture" className="mt-28 sm:mt-36">
           <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Hybrid architecture</h2>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
             CXGRD combines a high-performance native core with an ecosystem-friendly TypeScript command layer.
@@ -229,23 +223,6 @@ export default function Home() {
               </article>
             ))}
           </div>
-        </section>
-
-        <section id="roadmap" className="mt-16 sm:mt-20">
-          <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Product roadmap</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
-            A phased rollout from local graph intelligence to enterprise-grade collaboration and governance.
-          </p>
-          <ol className="mt-8 grid gap-3">
-            {roadmap.map((phase, index) => (
-              <li key={phase} className="feature-card glass-surface flex items-start gap-4 rounded-2xl p-5">
-                <span className="gradient-ring mt-0.5 inline-flex h-8 w-8 flex-none items-center justify-center rounded-full text-sm font-semibold text-white">
-                  {index + 1}
-                </span>
-                <span className="text-sm text-slate-200 sm:text-base">{phase}</span>
-              </li>
-            ))}
-          </ol>
         </section>
       </main>
 
