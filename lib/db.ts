@@ -7,7 +7,7 @@ export function isDatabaseConfigured(): boolean {
 }
 
 function getSslConfig(connectionString: string): { rejectUnauthorized: boolean } | undefined {
-  if (connectionString.includes('supabase.co')) {
+  if (connectionString.includes('supabase.co') || connectionString.includes('supabase.com')) {
     return { rejectUnauthorized: false };
   }
   return undefined;
