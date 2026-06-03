@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       githubId: identity.githubId,
       githubLogin: identity.login,
       email: identity.email,
-      upgradeToPro,
+      upgradeToPro : false,
     });
 
     // Create JWT for the CLI / session
