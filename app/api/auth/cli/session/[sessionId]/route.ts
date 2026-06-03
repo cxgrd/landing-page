@@ -1,73 +1,60 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getCliAuthSession } from '@/lib/auth-db';
+import { isDatabaseConfigured } from '@/lib/db';
 
-/**
- * GET /api/auth/cli/session/{sessionId}
- * 
- * Poll endpoint for CLI to check auth status.
- * 
- * The CLI calls this repeatedly after opening the auth flow:
- * - Open: GET {AUTH_BASE_URL}/auth/cli?session={uuid}
- * - Poll: GET /api/auth/cli/session/{sessionId}
- * 
- * Response codes:
- * - 202 Accepted: {"status": "pending"} - Keep polling
- * - 200 OK: {"token": "jwt", "plan": "pro", "email": "...", "expires_at": 123456789}
- * - 404 Not Found: Auth not available (dev uses CXGRD_DEV_PLAN)
- * - 501 Not Implemented: Auth API not ready yet
- */
+// GET /api/auth/cli/session/[sessionId]
+// CLI polls this every 2 seconds waiting for the user to complete GitHub login in browser
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
 ) {
+  if (!isDatabaseConfigured()) {
+    return NextResponse.json(
+      { error: "Auth API not available yet. Use CXGRD_DEV_PLAN=pro in .env for local dev." },
+      { status: 501 }
+    );
+  }
+
   try {
     const { sessionId } = await params;
 
     if (!sessionId) {
+      return NextResponse.json({ error: "Missing sessionId" }, { status: 400 });
+    }
+
+    const session = await getCliAuthSession(sessionId);
+
+    if (!session) {
+      return NextResponse.json({ error: "Session not found" }, { status: 404 });
+    }
+
+    // Session expired
+    if (session.expiresAt < new Date()) {
+      return NextResponse.json({ error: "Session expired. Run cxgrd auth login again." }, { status: 410 });
+    }
+
+    // Still waiting for user to complete browser login
+    if (session.status === 'pending') {
+      return NextResponse.json({ status: 'pending' }, { status: 202 });
+    }
+
+    // GitHub OAuth failed
+    if (session.status === 'error') {
       return NextResponse.json(
-        { error: "Missing session ID" },
+        { error: session.error || "Auth failed. Try again." },
         { status: 400 }
       );
     }
 
-    // In production, check Redis or database for JWT associated with sessionId
-    // The GitHub OAuth callback handler (in /api/auth/github) stores the token
-    // 
-    // Pseudo-code:
-    // const session = await redis.get(`auth_session:${sessionId}`)
-    // if (!session) return 202 (still pending)
-    // if (session.token) return 200 with token
-    // if (session.error) return 400 with error
-
-    // Mock implementation
-    console.log(`[Auth] CLI polling session: ${sessionId}`);
-
-    // For demonstration, return pending after a few seconds
-    // In production, this would check the actual session state
-    const mockToken = JSON.stringify({
-      sub: "user_123",
-      email: "developer@example.com",
-      plan: "pro",
-      org_id: "org_456",
-      org_name: "Developer Team",
-      role: "member",
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 86400, // 24 hours
+    // Authorized — return token to CLI
+    return NextResponse.json({
+      token: session.token,
+      plan: session.plan,
+      email: session.email,
     });
 
-    return NextResponse.json(
-      {
-        token: mockToken,
-        plan: "pro",
-        email: "developer@example.com",
-        expires_at: Math.floor(Date.now() / 1000) + 86400,
-      },
-      { status: 200 }
-    );
   } catch (error) {
-    console.error("Session check error:", error);
-    return NextResponse.json(
-      { error: "Failed to check session" },
-      { status: 500 }
-    );
+    console.error('CLI session poll error:', error);
+    return NextResponse.json({ error: "Session lookup failed" }, { status: 500 });
   }
 }
