@@ -9,8 +9,6 @@ import {
 } from '@/lib/auth-db';
 import { isDatabaseConfigured } from '@/lib/db';
 
-// GET /api/auth/github/callback?code=xxx&state=xxx
-// GitHub redirects here after user approves OAuth
 export async function GET(request: NextRequest) {
   if (!isDatabaseConfigured()) {
     return NextResponse.redirect(new URL('/auth/error?reason=not_configured', request.url));
@@ -21,7 +19,6 @@ export async function GET(request: NextRequest) {
   const stateToken = searchParams.get('state');
   const errorParam = searchParams.get('error');
 
-  // User denied access on GitHub
   if (errorParam) {
     return NextResponse.redirect(new URL(`/auth/error?reason=${errorParam}`, request.url));
   }
@@ -33,25 +30,24 @@ export async function GET(request: NextRequest) {
   try {
     await ensureAuthSchema();
 
-    // Verify state token (prevents CSRF)
     const state = verifyOAuthState(stateToken);
     if (!state) {
       return NextResponse.redirect(new URL('/auth/error?reason=invalid_state', request.url));
     }
 
-    // Exchange GitHub code for identity
     const identity = await exchangeCodeForGitHubIdentity(origin, code);
 
-    // Upsert account in DB
-    const upgradeToPro = state.intent === 'upgrade' && state.targetPlan === 'pro';
+    // NEVER upgrade plan here — plan only changes after Dodo payment webhook confirms payment
+    // upgradeToPro is only used to decide whether to redirect to Dodo checkout
+    const redirectToCheckout = state.intent === 'upgrade' && state.targetPlan === 'pro';
+
     const account = await upsertIndividualAccount({
       githubId: identity.githubId,
       githubLogin: identity.login,
       email: identity.email,
-      upgradeToPro : false,
+      upgradeToPro: false,
     });
 
-    // Create JWT for the CLI / session
     const token = createAuthToken({
       sub: account.id,
       email: account.email,
@@ -60,7 +56,6 @@ export async function GET(request: NextRequest) {
     });
 
     if (state.intent === 'cli' && state.sessionId) {
-      // Mark CLI session as authorized — CLI is polling for this
       await markCliAuthSessionAuthorized({
         sessionId: state.sessionId,
         accountId: account.id,
@@ -68,23 +63,29 @@ export async function GET(request: NextRequest) {
         email: account.email,
         plan: account.plan,
       });
-      // Show success page — user can close the browser tab
-      return NextResponse.redirect(new URL('/auth/success?source=cli', request.url));
+      // Pass real plan from DB so success page shows accurate info
+      return NextResponse.redirect(
+        new URL(`/auth/success?source=cli&plan=${account.plan}`, request.url)
+      );
     }
 
-    // Upgrade flow
-    if (upgradeToPro) {
-      const checkoutUrl = `https://checkout.dodopayments.com/buy/pdt_0Ng6EAXoE8ybCQmeyWYtB` +
+    // Upgrade flow — redirect to Dodo checkout
+    // Plan stays 'free' until Dodo webhook fires after successful payment
+    if (redirectToCheckout) {
+      const checkoutUrl =
+        `https://checkout.dodopayments.com/buy/pdt_0Ng6EAXoE8ybCQmeyWYtB` +
         `?email=${encodeURIComponent(account.email)}` +
         `&metadata[account_id]=${account.id}`;
       return NextResponse.redirect(checkoutUrl);
     }
-    return NextResponse.redirect(new URL('/auth/success', request.url));
+
+    return NextResponse.redirect(
+      new URL(`/auth/success?plan=${account.plan}`, request.url)
+    );
 
   } catch (error) {
     console.error('GitHub callback error:', error);
 
-    // If this was a CLI login, mark session as error so CLI stops polling
     const state = stateToken ? verifyOAuthState(stateToken) : null;
     if (state?.intent === 'cli' && state.sessionId) {
       const message = error instanceof Error ? error.message : 'Auth failed';
