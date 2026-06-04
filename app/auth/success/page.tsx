@@ -7,7 +7,16 @@ import { Suspense } from "react";
 function SuccessContent() {
   const searchParams = useSearchParams();
   const source = searchParams.get("source"); // "cli" or null
-  const plan = searchParams.get("plan");
+  const plan = (searchParams.get("plan") || "free") as "free" | "pro" | "team" | "enterprise";
+
+  const isPro = plan === "pro" || plan === "team" || plan === "enterprise";
+
+  const planLabel = {
+    free: "Free",
+    pro: "Pro",
+    team: "Team",
+    enterprise: "Enterprise",
+  }[plan] || "Free";
 
   return (
     <div className="mx-auto w-full max-w-md">
@@ -21,13 +30,13 @@ function SuccessContent() {
         </div>
 
         <h1 className="text-2xl font-semibold text-white">
-          {source === "cli" ? "You're signed in!" : `You're on ${plan || "Pro"}!`}
+          You're signed in!
         </h1>
 
         <p className="mt-4 text-sm text-slate-400">
           {source === "cli"
             ? "Your CLI is now authenticated. Return to your terminal — it will pick up automatically."
-            : "Your plan has been activated. Run cxgrd auth login to unlock Pro features in your CLI."}
+            : `Your ${planLabel} plan is active.`}
         </p>
 
         {source === "cli" && (
@@ -35,9 +44,28 @@ function SuccessContent() {
             <p className="text-xs font-semibold text-blue-200">Back in your terminal:</p>
             <code className="mt-2 block text-xs text-slate-300">
               ✓ Authenticated successfully<br />
-              ✓ Plan: Pro<br />
-              → Run cxgrd prompt "your change" to get started
+              ✓ Plan: {planLabel}<br />
+              {isPro
+                ? '→ Run cxgrd prompt "your change" to get started'
+                : '→ Run cxgrd scan to get started'}
             </code>
+          </div>
+        )}
+
+        {/* Show upgrade nudge for free plan users */}
+        {source === "cli" && !isPro && (
+          <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-left">
+            <p className="text-xs font-semibold text-amber-200">Want prompt enrichment?</p>
+            <p className="mt-1 text-xs text-slate-300">
+              You're on the Free plan. Upgrade to Pro to unlock{" "}
+              <code className="text-blue-300">cxgrd prompt</code> and repo memory.
+            </p>
+            <a
+              href="/pricing"
+              className="mt-3 inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-blue-500 to-violet-500 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
+            >
+              Upgrade to Pro →
+            </a>
           </div>
         )}
 
