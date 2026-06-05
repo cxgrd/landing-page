@@ -10,7 +10,10 @@ export async function POST(request: NextRequest) {
     }
 
     const token = authHeader.slice(7);
+    console.log('Token first 20 chars:', token.slice(0, 20));
+    console.log('Secret being used:', process.env.CXGRD_AUTH_TOKEN_SECRET?.slice(0, 5) || 'MISSING');
     const claims = verifyAuthToken(token);
+    console.log('Claims result:', claims ? 'valid' : 'null');
     if (!claims) {
       return NextResponse.json({ error: "Invalid or expired token" }, { status: 401 });
     }
