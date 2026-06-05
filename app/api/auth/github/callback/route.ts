@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/auth/error?reason=not_configured', request.url));
   }
 
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const stateToken = searchParams.get('state');
   const errorParam = searchParams.get('error');
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/auth/error?reason=invalid_state', request.url));
     }
 
-    const identity = await exchangeCodeForGitHubIdentity(origin, code);
+    const identity = await exchangeCodeForGitHubIdentity(code);
 
     // NEVER upgrade plan here — plan only changes after Dodo payment webhook confirms payment
     // upgradeToPro is only used to decide whether to redirect to Dodo checkout

@@ -38,20 +38,20 @@ function getGitHubClientSecret(): string {
   return value;
 }
 
-function getCallbackUrl(origin: string): string {
-  return `${origin}/api/auth/github/callback`;
+function getCallbackUrl(): string {
+  return `${process.env.SITE_URL}/api/auth/github/callback`;
 }
 
-export function buildGitHubAuthorizeUrl(origin: string, state: string): string {
+export function buildGitHubAuthorizeUrl(state: string): string {
   const url = new URL('https://github.com/login/oauth/authorize');
   url.searchParams.set('client_id', getGitHubClientId());
-  url.searchParams.set('redirect_uri', getCallbackUrl(origin));
+  url.searchParams.set('redirect_uri', getCallbackUrl());
   url.searchParams.set('scope', 'read:user user:email');
   url.searchParams.set('state', state);
   return url.toString();
 }
 
-async function exchangeCodeForAccessToken(origin: string, code: string): Promise<string> {
+async function exchangeCodeForAccessToken(code: string): Promise<string> {
   const response = await fetch('https://github.com/login/oauth/access_token', {
     method: 'POST',
     headers: {
@@ -62,7 +62,7 @@ async function exchangeCodeForAccessToken(origin: string, code: string): Promise
       client_id: getGitHubClientId(),
       client_secret: getGitHubClientSecret(),
       code,
-      redirect_uri: getCallbackUrl(origin),
+      redirect_uri: getCallbackUrl(),
     }),
   });
 
@@ -122,10 +122,9 @@ async function fetchGitHubEmail(accessToken: string): Promise<string> {
 }
 
 export async function exchangeCodeForGitHubIdentity(
-  origin: string,
   code: string,
 ): Promise<GitHubIdentity> {
-  const accessToken = await exchangeCodeForAccessToken(origin, code);
+  const accessToken = await exchangeCodeForAccessToken(code);
   const user = await fetchGitHubUser(accessToken);
   const email = user.email || (await fetchGitHubEmail(accessToken));
 
