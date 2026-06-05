@@ -66,7 +66,7 @@ function decodeAndVerify(token: string): Record<string, unknown> | null {
   const expected = Buffer.from(expectedSignature, 'utf8');
   const actual = Buffer.from(encodedSignature, 'utf8');
   if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
-    return null;
+    throw new Error("Signature mismatch: token may have been tampered with or the secret is incorrect");
   }
 
   try {
