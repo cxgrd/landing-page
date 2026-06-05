@@ -37,6 +37,11 @@ export interface CliAuthSession {
   expiresAt: Date;
 }
 
+// Pending = waiting for browser login (short)
+const PENDING_SESSION_TTL = `interval '15 minutes'`;
+// Authorized = user is logged in (long — don't make users re-login constantly)
+const AUTHORIZED_SESSION_TTL = `interval '30 days'`;
+
 let schemaEnsured = false;
 
 export async function ensureAuthSchema(): Promise<void> {
@@ -65,7 +70,7 @@ export async function ensureAuthSchema(): Promise<void> {
       error text,
       created_at timestamptz not null default now(),
       updated_at timestamptz not null default now(),
-      expires_at timestamptz not null default (now() + interval '10 minutes')
+      expires_at timestamptz not null default (now() + ${PENDING_SESSION_TTL})
     );
   `);
 
@@ -150,7 +155,7 @@ export async function ensurePendingCliAuthSession(sessionId: string): Promise<Cl
   await dbQuery(
     `
       insert into cli_auth_sessions (session_id, status, expires_at, updated_at)
-      values ($1, 'pending', now() + interval '10 minutes', now())
+      values ($1, 'pending', now() + ${PENDING_SESSION_TTL}, now())
       on conflict (session_id) do nothing
     `,
     [sessionId],
@@ -173,7 +178,7 @@ export async function markCliAuthSessionAuthorized(input: {
   await dbQuery(
     `
       insert into cli_auth_sessions (session_id, status, account_id, token, email, plan, error, expires_at, updated_at)
-      values ($1, 'authorized', $2, $3, $4, $5, null, now() + interval '10 minutes', now())
+      values ($1, 'authorized', $2, $3, $4, $5, null, now() + ${AUTHORIZED_SESSION_TTL}, now())
       on conflict (session_id) do update
       set status = 'authorized',
           account_id = excluded.account_id,
@@ -181,7 +186,7 @@ export async function markCliAuthSessionAuthorized(input: {
           email = excluded.email,
           plan = excluded.plan,
           error = null,
-          expires_at = now() + interval '10 minutes',
+          expires_at = now() + ${AUTHORIZED_SESSION_TTL},
           updated_at = now()
     `,
     [input.sessionId, input.accountId, input.token, input.email, input.plan],
@@ -195,7 +200,7 @@ export async function markCliAuthSessionError(
   await dbQuery(
     `
       insert into cli_auth_sessions (session_id, status, error, expires_at, updated_at)
-      values ($1, 'error', $2, now() + interval '10 minutes', now())
+      values ($1, 'error', $2, now() + ${PENDING_SESSION_TTL}, now())
       on conflict (session_id) do update
       set status = 'error',
           error = excluded.error,
