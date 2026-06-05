@@ -11,7 +11,7 @@ import { isDatabaseConfigured } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   if (!isDatabaseConfigured()) {
-    return NextResponse.redirect(new URL('/auth/error?reason=not_configured', request.url));
+    return NextResponse.redirect(new URL('/auth/error?reason=not_configured', process.env.SITE_URL));
   }
 
   const { searchParams } = new URL(request.url);
@@ -20,11 +20,11 @@ export async function GET(request: NextRequest) {
   const errorParam = searchParams.get('error');
 
   if (errorParam) {
-    return NextResponse.redirect(new URL(`/auth/error?reason=${errorParam}`, request.url));
+    return NextResponse.redirect(new URL(`/auth/error?reason=${errorParam}`, process.env.SITE_URL));
   }
 
   if (!code || !stateToken) {
-    return NextResponse.redirect(new URL('/auth/error?reason=missing_params', request.url));
+    return NextResponse.redirect(new URL('/auth/error?reason=missing_params', process.env.SITE_URL));
   }
 
   try {
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     const state = verifyOAuthState(stateToken);
     if (!state) {
-      return NextResponse.redirect(new URL('/auth/error?reason=invalid_state', request.url));
+      return NextResponse.redirect(new URL('/auth/error?reason=invalid_state', process.env.SITE_URL));
     }
 
     const identity = await exchangeCodeForGitHubIdentity(code);
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
       });
       // Pass real plan from DB so success page shows accurate info
       return NextResponse.redirect(
-        new URL(`/auth/success?source=cli&plan=${account.plan}`, request.url)
+        new URL(`/auth/success?source=cli&plan=${account.plan}`, process.env.SITE_URL)
       );
     }
 
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.redirect(
-      new URL(`/auth/success?plan=${account.plan}`, request.url)
+      new URL(`/auth/success?plan=${account.plan}`, process.env.SITE_URL)
     );
 
   } catch (error) {
@@ -92,6 +92,6 @@ export async function GET(request: NextRequest) {
       await markCliAuthSessionError(state.sessionId, message).catch(() => {});
     }
 
-    return NextResponse.redirect(new URL('/auth/error?reason=auth_failed', request.url));
+    return NextResponse.redirect(new URL('/auth/error?reason=auth_failed', process.env.SITE_URL));
   }
 }
