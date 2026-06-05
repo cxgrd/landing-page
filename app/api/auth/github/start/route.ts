@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     }
 
     const state = createOAuthState(intent, sessionId, plan as 'pro' | undefined);
-    const origin = new URL(request.url).origin;
+    const origin = process.env.SITE_URL || "https://cxgrd.com";
     const githubUrl = buildGitHubAuthorizeUrl(origin, state);
 
     return NextResponse.redirect(githubUrl);
