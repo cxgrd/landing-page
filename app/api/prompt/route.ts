@@ -10,8 +10,9 @@ export async function POST(request: NextRequest) {
     }
 
     const token = authHeader.slice(7);
-    console.log('Token first 20 chars:', token.slice(0, 20));
-    console.log('Secret being used:', process.env.CXGRD_AUTH_TOKEN_SECRET?.slice(0, 5) || 'MISSING');
+    const secretInUse = process.env.CXGRD_AUTH_TOKEN_SECRET || 'MISSING';
+    console.log('Secret first 8 chars:', secretInUse.slice(0, 8));
+    console.log('Token last 10 chars:', token.slice(-10));
     const claims = verifyAuthToken(token);
     console.log('Claims result:', claims ? 'valid' : 'null');
     if (!claims) {

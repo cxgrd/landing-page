@@ -57,21 +57,25 @@ function encodeToken(payload: Record<string, unknown>): string {
 }
 
 function decodeAndVerify(token: string): Record<string, unknown> | null {
-  const [encodedHeader, encodedPayload, encodedSignature] = token.split('.');
-  if (!encodedHeader || !encodedPayload || !encodedSignature) {
-    return null;
-  }
-
-  const expectedSignature = sign(`${encodedHeader}.${encodedPayload}`);
-  const expected = Buffer.from(expectedSignature, 'utf8');
-  const actual = Buffer.from(encodedSignature, 'utf8');
-  if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
-    throw new Error("Signature mismatch: token may have been tampered with or the secret is incorrect");
-  }
-
   try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+
+    const [encodedHeader, encodedPayload, encodedSignature] = parts;
+    if (!encodedHeader || !encodedPayload || !encodedSignature) return null;
+
+    const expectedSignature = sign(`${encodedHeader}.${encodedPayload}`);
+    const expected = Buffer.from(expectedSignature, 'utf8');
+    const actual = Buffer.from(encodedSignature, 'utf8');
+
+    // Signature mismatch — return null instead of throwing
+    if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
+      return null;
+    }
+
     return JSON.parse(base64UrlDecode(encodedPayload).toString('utf8')) as Record<string, unknown>;
   } catch {
+    // Any unexpected error — return null cleanly
     return null;
   }
 }
@@ -94,23 +98,23 @@ export function createAuthToken(
 }
 
 export function verifyAuthToken(token: string): CxgrdAuthTokenPayload | null {
-  const decoded = decodeAndVerify(token);
-  if (!decoded || isExpired(decoded.exp)) {
+  try {
+    const decoded = decodeAndVerify(token);
+    if (!decoded || isExpired(decoded.exp)) return null;
+
+    if (typeof decoded.sub !== 'string' || typeof decoded.email !== 'string') return null;
+
+    return {
+      sub: decoded.sub,
+      email: decoded.email,
+      plan: normalizePlan(typeof decoded.plan === 'string' ? decoded.plan : 'free'),
+      github_login: typeof decoded.github_login === 'string' ? decoded.github_login : undefined,
+      iat: typeof decoded.iat === 'number' ? decoded.iat : 0,
+      exp: typeof decoded.exp === 'number' ? decoded.exp : 0,
+    };
+  } catch {
     return null;
   }
-
-  if (typeof decoded.sub !== 'string' || typeof decoded.email !== 'string') {
-    return null;
-  }
-
-  return {
-    sub: decoded.sub,
-    email: decoded.email,
-    plan: normalizePlan(typeof decoded.plan === 'string' ? decoded.plan : 'free'),
-    github_login: typeof decoded.github_login === 'string' ? decoded.github_login : undefined,
-    iat: typeof decoded.iat === 'number' ? decoded.iat : 0,
-    exp: typeof decoded.exp === 'number' ? decoded.exp : 0,
-  };
 }
 
 export function createOAuthState(
@@ -133,25 +137,25 @@ export function createOAuthState(
 }
 
 export function verifyOAuthState(stateToken: string): OAuthStatePayload | null {
-  const decoded = decodeAndVerify(stateToken);
-  if (!decoded || isExpired(decoded.exp)) {
+  try {
+    const decoded = decodeAndVerify(stateToken);
+    if (!decoded || isExpired(decoded.exp)) return null;
+
+    const intent = decoded.intent === 'cli' || decoded.intent === 'upgrade' ? decoded.intent : null;
+    if (!intent) return null;
+
+    return {
+      intent,
+      sessionId: typeof decoded.sessionId === 'string' ? decoded.sessionId : undefined,
+      targetPlan:
+        typeof decoded.targetPlan === 'string'
+          ? normalizePlan(decoded.targetPlan)
+          : undefined,
+      nonce: typeof decoded.nonce === 'string' ? decoded.nonce : '',
+      iat: typeof decoded.iat === 'number' ? decoded.iat : 0,
+      exp: typeof decoded.exp === 'number' ? decoded.exp : 0,
+    };
+  } catch {
     return null;
   }
-
-  const intent = decoded.intent === 'cli' || decoded.intent === 'upgrade' ? decoded.intent : null;
-  if (!intent) {
-    return null;
-  }
-
-  return {
-    intent,
-    sessionId: typeof decoded.sessionId === 'string' ? decoded.sessionId : undefined,
-    targetPlan:
-      typeof decoded.targetPlan === 'string'
-        ? normalizePlan(decoded.targetPlan)
-        : undefined,
-    nonce: typeof decoded.nonce === 'string' ? decoded.nonce : '',
-    iat: typeof decoded.iat === 'number' ? decoded.iat : 0,
-    exp: typeof decoded.exp === 'number' ? decoded.exp : 0,
-  };
 }
