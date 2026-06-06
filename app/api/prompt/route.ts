@@ -10,15 +10,12 @@ export async function POST(request: NextRequest) {
     }
 
     const token = authHeader.slice(7);
-    const secretInUse = process.env.CXGRD_AUTH_TOKEN_SECRET || 'MISSING';
+    // console.log('Token first 20 chars:', token.slice(0, 20));
+    // console.log('Secret being used:', process.env.CXGRD_AUTH_TOKEN_SECRET?.slice(0, 5) || 'MISSING');
     const claims = verifyAuthToken(token);
-
+    // console.log('Claims result:', claims ? 'valid' : 'null');
     if (!claims) {
-      return NextResponse.json({ 
-        error: "Invalid or expired token",
-        debug_secret_prefix: secretInUse.slice(0, 8),
-        debug_token_suffix: token.slice(-10),
-      }, { status: 401 });
+      return NextResponse.json({ error: "Invalid or expired token" }, { status: 401 });
     }
     if (!isProPlan(claims.plan)) {
       return NextResponse.json(
