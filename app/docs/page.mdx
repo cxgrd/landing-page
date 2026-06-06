@@ -1,0 +1,26 @@
+# cxgrd
+
+**cxgrd** is a lightweight developer CLI that maps codebase dependencies, computes downstream blast radius before AI edits, and checks generated diffs for structural and logic risks before commit.
+
+## Why cxgrd?
+
+AI coding tools are fast but stateless — they have no memory of your architecture between sessions. cxgrd adds persistent architectural memory and dependency-aware safety checks so velocity doesn't come at the cost of production stability.
+
+## Core commands
+
+| Command | Description |
+|---|---|
+| `cxgrd scan` | Build dependency graph, write to `.cg/` |
+| `cxgrd input "change"` | Compute blast radius of a planned change |
+| `cxgrd prompt "change"` | Generate architecture-aware AI prompt (Pro) |
+| `cxgrd check` | Compiler-backed verification of AI diffs |
+| `cxgrd auth login` | Sign in for Pro features |
+
+## Quick start
+
+```bash
+npm install -g cxgrd
+cd your-project
+cxgrd scan
+cxgrd input "add rate limiting to auth middleware"
+```

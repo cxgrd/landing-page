@@ -1,0 +1,42 @@
+---
+title: Installation
+description: Install cxgrd on your machine
+---
+
+# Installation
+
+## Requirements
+
+- Node.js 18+
+- Git (for pre-commit hooks)
+
+## npm (recommended)
+
+```bash
+npm install -g cxgrd
+```
+
+## Verify install
+
+```bash
+cxgrd --version
+```
+
+## First scan
+
+```bash
+cd your-project
+cxgrd scan
+```
+
+This creates a `.cg/` folder in your project with the dependency graph, symbol map, and architectural memory.
+
+## Pro features
+
+To unlock `cxgrd prompt` and repo memory:
+
+```bash
+cxgrd auth login
+```
+
+This opens GitHub OAuth in your browser. After signing in, visit [cxgrd.com/pricing](https://cxgrd.com/pricing) to upgrade to Pro.

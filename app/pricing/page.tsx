@@ -1,6 +1,7 @@
 'use client';
 
 import Image from "next/image";
+import { Footer } from "@/components/Footer";
 import { useState } from "react";
 
 // Replace with your actual Dodo Payments product/checkout URL
@@ -126,6 +127,7 @@ export default function PricingPage() {
           <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
             <a href="/#how-it-works" className="transition-colors hover:text-white">How it works</a>
             <a href="/#architecture" className="transition-colors hover:text-white">Architecture</a>
+            <a href="/#install" className="transition-colors hover:text-white">Install</a>
             <a href="/pricing" className="font-medium text-white transition-colors hover:text-white">Pricing</a>
             <a href="https://cxgrd.com/docs" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-white">Docs</a>
           </nav>
@@ -245,12 +247,7 @@ export default function PricingPage() {
         </section>
       </main>
 
-      <footer className="mt-16 border-t border-white/10 bg-[#05070f]/70 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-2 px-6 py-8 text-center text-xs text-slate-400 sm:flex-row sm:text-left">
-          <p className="text-sm">cxgrd — AI context guardrails for AI-native development.</p>
-          <p>© 2026 · Early access in progress.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

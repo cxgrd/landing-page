@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Footer } from "@/components/Footer";
 
 const capabilities = [
   {
@@ -116,6 +117,9 @@ export default function Home() {
             <a href="#architecture" className="transition-colors hover:text-white">
               Architecture
             </a>
+            <a href="#install" className="transition-colors hover:text-white">
+              Install
+            </a>
             <a href="/pricing" className="transition-colors hover:text-white">
               Pricing
             </a>
@@ -223,14 +227,24 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        <section id="install" className="mt-28 sm:mt-36">
+          <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Install CXGRD</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
+            Get started with CXGRD in minutes.
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-1">
+            <article className="feature-card glass-surface rounded-2xl p-6">
+              <p className="text-sm font-semibold text-blue-200">Install via npm</p>
+              <pre className="mt-4 overflow-x-auto rounded bg-[#0a0f1a] p-4 text-left text-sm text-green-400">
+                npm install -g cxgrd
+              </pre>
+            </article>
+          </div>
+        </section>
       </main>
 
-      <footer className="mt-16 border-t border-white/10 bg-[#05070f]/70 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-2 px-6 py-8 text-center text-xs text-slate-400 sm:flex-row sm:text-left">
-          <p className="text-sm">cxgrd — AI context guardrails for AI-native development.</p>
-          <p>© 2026 · Early access in progress.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

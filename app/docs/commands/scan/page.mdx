@@ -1,0 +1,38 @@
+# cxgrd scan
+
+Crawls your entire project directory and builds a persistent dependency graph stored in `.cg/`.
+
+## Usage
+
+```bash
+cxgrd scan
+```
+
+## What it creates
+
+```
+.cg/
+├── graph.json      ← directed dependency graph (nodes = files, edges = imports)
+├── symbols.json    ← exported functions, classes, types per file
+├── arch.json       ← inferred architectural layers
+├── meta.json       ← last scan time, language, entry points
+└── history.json    ← change session log
+```
+
+## What it ignores
+
+- `node_modules/`, `.venv/`, `venv/`, `dist/`, `.git/`
+- Anything in your `.gitignore`
+
+## Example output
+
+```
+✓ Scanned 47 files in 1.2s
+✓ Found 312 dependencies
+✓ Graph written to .cg/graph.json
+✓ Symbols extracted: 89 exports
+```
+
+## Re-scanning
+
+Run `cxgrd scan` anytime you add new files or change the project structure. The graph is diffed against the previous run and updated incrementally.
