@@ -22,7 +22,7 @@ const footerLinks = {
     { label: "Documentation", href: "/docs" },
     { label: "npm package", href: "https://npmjs.com/package/cxgrd", external: true },
     { label: "GitHub", href: "https://github.com/cxgrd", external: true },
-    { label: "Status", href: "/status" },
+    { label: "Status", href: "https://stats.uptimerobot.com/f3AQQEDMx6" },
   ],
   Company: [
     { label: "About", href: "/about" },
