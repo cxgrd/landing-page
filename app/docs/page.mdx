@@ -1,10 +1,38 @@
 # cxgrd
 
-**cxgrd** is a lightweight developer CLI that maps codebase dependencies, computes downstream blast radius before AI edits, and checks generated diffs for structural and logic risks before commit.
+## What is CXGRD?
 
-## Why cxgrd?
+Modern codebases are deeply interconnected — changing one file can silently break a dozen others. When you ask an AI assistant to refactor a service or add a feature, it typically has no awareness of your project's dependency graph, architectural layers, or downstream impact.
 
-AI coding tools are fast but stateless — they have no memory of your architecture between sessions. cxgrd adds persistent architectural memory and dependency-aware safety checks so velocity doesn't come at the cost of production stability.
+**CXGRD** solves this. It scans your project and builds a complete dependency graph, then uses that graph to:
+
+- **Tell you exactly what will break** before you make a change
+- **Enrich your AI prompts** with architectural context so the AI makes safer, smarter suggestions
+- **Validate your code** for circular dependencies, orphaned files, and layer violations — both structurally and with compiler-backed checks
+
+Think of it as giving your AI assistant a map of your codebase before it starts digging.
+
+## Typical Workflow
+
+```bash
+# 1. Authenticate
+cxgrd auth login
+> This step is required for users with Pro, Team and Enterprise plans
+
+# 2. Scan your project
+cxgrd scan .
+
+# 3. Before making a change — check the blast radius
+cxgrd input "extract UserService into a separate module"
+
+# 4. Generate an enriched prompt for your AI
+cxgrd prompt "extract UserService into a separate module"
+
+# 5. Paste the prompt into your AI tool, make the changes
+
+# 6. Validate the result
+cxgrd check .
+```
 
 ## Core commands
 
@@ -23,4 +51,16 @@ npm install -g cxgrd
 cd your-project
 cxgrd scan
 cxgrd input "add rate limiting to auth middleware"
+```
+
+## Development
+
+```bash
+npm install
+npm run build
+
+# Run commands locally
+npm run dev -- scan /path/to/project
+npm run dev -- input "describe your change"
+npm run dev -- prompt "describe your feature"
 ```
