@@ -6,9 +6,11 @@ Crawls your entire project directory and builds a persistent dependency graph st
 
 ```bash
 cxgrd scan
+cxgrd scan /path/to/project
 ```
 
 ## What it creates
+This command creates a `.cg/` in the project directory with the following contents:
 
 ```
 .cg/
@@ -16,7 +18,8 @@ cxgrd scan
 ├── symbols.json    ← exported functions, classes, types per file
 ├── arch.json       ← inferred architectural layers
 ├── meta.json       ← last scan time, language, entry points
-└── history.json    ← change session log
+├── history.json    ← change session log
+└── patterns.json   ← structural patterns observed in the project
 ```
 
 ## What it ignores
@@ -26,11 +29,16 @@ cxgrd scan
 
 ## Example output
 
-```
-✓ Scanned 47 files in 1.2s
-✓ Found 312 dependencies
-✓ Graph written to .cg/graph.json
-✓ Symbols extracted: 89 exports
+```bash
+PS C:\Users\name\project1> cxgrd scan
+🔍 Scanning project...
+   Path: C:\Users\name\project1
+✓ Found 22 source files
+📊 Building dependency graph...
+   Total dependencies: 160
+   Languages: python(21), yaml(1)
+✓ Scan complete!
+✓ Updated .cg/ (graph, symbols, arch, patterns, memory)
 ```
 
 ## Re-scanning
