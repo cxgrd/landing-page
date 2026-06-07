@@ -1,6 +1,6 @@
 # CXGRD Landing Page
 
-A landing page for CXGRD - an AI architectural guardrail CLI tool.
+The landing page for CXGRD - an AI architectural guardrail CLI tool.
 
 ## Features
 
