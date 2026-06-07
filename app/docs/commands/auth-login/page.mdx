@@ -1,1 +1,38 @@
 # cxgrd auth login
+
+For Pro, Team and Enterprise users.
+This command is used to authenticate with cxgrd 
+
+## Usage
+
+```bash
+cxgrd auth login
+```
+
+## Example Usage
+
+```bash
+PS C:\Users\name\project1> cxgrd auth login
+✓ Opening browser for GitHub sign-in...
+   Session: d83*****...
+   If the browser does not open: https://cxgrd.com/auth/cli?session=d8349e********....
+
+   Waiting for authorization...
+
+✓ Signed in successfully
+   Token saved to C:\Users\name\.cg\auth.json
+   Plan: pro
+```
+
+You'll be asked to authorize CXGRD to access your GitHub account for authentication only.
+
+What happens next:
+
+1. You'll authorize CXGRD via GitHub OAuth
+2. Your session will be securely stored
+3. Return to your CLI — it picks up automatically
+4. Pro features are now unlocked
+
+The JWT token and other authentication details are safely stored inside the `.cg/` folder at your home directory.
+
+> Upgrade to Pro at https://cxgrd.com/pricing

@@ -1,1 +1,28 @@
 # cxgrd check
+
+Validates your project structurally and with compiler-backed checks. Catches circular dependencies, orphaned files, layer violations, and type/syntax errors.
+
+## Usage
+
+```bash
+cxgrd check .
+cxgrd check . --staged        # only staged files (great for pre-commit hooks)
+cxgrd check . --strict        # fail if compiler tools are missing (recommended for CI)
+```
+
+> Compiler backed verification works only if the compilers for the particular programming language are installed on the system.
+
+## Example output
+
+```bash
+PS C:\Users\name\project1> cxgrd check .
+✓ Running cxgrd check...
+   Structural analysis...
+   Compiler verification (TypeScript, Python, Rust)...
+   Compiler runs:
+     · python (pyright @ .): skipped — pyright not found on PATH (install with: pip install pyright)
+   ⚠ Skipped compiler(s) for: python — not counted as failures.
+     Use --strict or run `cxgrd doctor` to fix your toolchain.
+✓ All checks passed!
+   Scope: full project · Mode: permissive · 0 errors (0 structural, 0 compiler) · 0 warnings
+```

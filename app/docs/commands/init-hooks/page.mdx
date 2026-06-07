@@ -1,1 +1,43 @@
 # cxgrd init-hooks
+
+The `init-hooks` command sets up a pre-commit hook so CXGRD can run checks automatically before every commit.
+
+```bash
+cxgrd init-hooks
+cxgrd init-hooks --threshold 80 --block-critical
+cxgrd init-hooks --uninstall
+```
+
+The `--threshold` flag is used to block commits which exceed a certain danger level. 
+The `--block-critical` will block commits which include changes flagged as High risk or critical.
+
+## Example Usage
+
+```bash
+PS C:\Users\name\project1> cxgrd init-hooks
+
+═════════════════════════
+  Pre-commit Hook Setup
+═════════════════════════
+
+ℹ  Pre-commit hooks already installed and enabled.
+
+
+▶ Current Status
+────────────────
+
+   Installed      : ✓ Yes
+   Enabled        : ✓ Yes
+   Block Critical : ✓ Yes
+   Risk Threshold : 70/100
+
+
+▶ Next Steps
+────────────
+
+   1. Make a change to your code
+   2. Stage the changes: git add <files>
+   3. Try to commit: git commit -m "your message"
+   4. The hook will run automatically
+```
+

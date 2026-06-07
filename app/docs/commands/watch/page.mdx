@@ -1,1 +1,35 @@
 # cxgrd watch
+
+The `watch` command runs in the background and monitors your project for dependency changes in real time.
+
+## Usage
+
+```bash
+cxgrd watch
+```
+
+## Example Usage
+
+```bash
+
+PS C:\Users\name\project1> cxgrd watch
+╔════════════════════════════════════════════╗
+║     🔍  CXGRD Watch Mode (Press Q to quit) ║
+╚════════════════════════════════════════════╝
+
+✓ Watch mode active
+   Monitoring: C:\Users\name\project1
+   Graph files: 22
+   Debounce: 500ms
+```
+
+The watch mode will continue to run until 'Q' is pressed.
+
+```bash
+🛑 Stopping watch mode...
+
+
+👋 Watch mode stopped.
+   Analyzed 0 change(s).
+```
+

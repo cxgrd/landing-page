@@ -1,1 +1,37 @@
 # cxgrd doctor
+
+It checks the readiness of your project environment and verifies whether your toolchain is ready before enabling strict checks.
+
+## Usage
+
+```bash
+cxgrd doctor          # check global toolchain
+cxgrd doctor .        # check project-specific readiness
+```
+
+## Example Usage
+
+```bash
+PS C:\Users\name\project1> cxgrd doctor
+✓ cxgrd doctor — environment & project readiness
+
+Runtime & tools
+  ✓ Node.js
+      v22.18.0 (required >=18)
+  ✓ Git
+      available (for --staged / pre-commit hooks)
+  ✓ TypeScript (bundled)
+      typescript@5.9.3 ships with cxgrd — no global tsc required
+  ✗ Pyright
+      not on PATH
+      → pip install pyright
+  ✗ Cargo (Rust)
+      not on PATH
+      → https://rustup.rs/
+
+  Tip: run `cxgrd doctor <path>` to verify compiler tools for a specific project.
+
+  `cxgrd check` runs without --strict and may skip missing compilers silently.
+  Use `cxgrd check --strict` in CI or pre-commit when you need guaranteed compiler coverage.
+```
+
