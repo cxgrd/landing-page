@@ -91,7 +91,7 @@ export default function PricingPage() {
 
     if (action === "free") {
       // Scroll to install instructions or docs
-      window.location.href = "/#how-it-works";
+      window.location.href = "/#install";
       return;
     }
 
