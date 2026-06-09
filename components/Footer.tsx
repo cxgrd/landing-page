@@ -12,7 +12,7 @@ const footerLinks = {
     { label: "cxgrd scan", href: "/docs/commands/scan" },
     { label: "cxgrd input", href: "/docs/commands/input" },
     { label: "cxgrd prompt", href: "/docs/commands/prompt" },
-    { label: "cxgrd auth", href: "/docs/commands/auth" },
+    { label: "cxgrd auth login", href: "/docs/commands/auth-login" },
     { label: "cxgrd doctor", href: "/docs/commands/doctor" },
     { label: "cxgrd init-hooks", href: "/docs/commands/init-hooks" },
     { label: "cxgrd watch", href: "/docs/commands/watch" },
