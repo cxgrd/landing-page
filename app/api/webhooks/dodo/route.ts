@@ -13,7 +13,11 @@ function verifyDodoSignature(
 ): boolean {
   try {
     const signedContent = `${webhookId}.${webhookTimestamp}.${rawBody}`;
-    const secretBytes = Buffer.from(secret, 'base64');
+
+    // Strip whsec_ prefix if present before base64 decoding
+    const cleanSecret = secret.startsWith('whsec_') ? secret.slice(6) : secret;
+    const secretBytes = Buffer.from(cleanSecret, 'base64');
+
     const expected = createHmac('sha256', secretBytes)
       .update(signedContent)
       .digest('base64');
@@ -24,8 +28,15 @@ function verifyDodoSignature(
       const sigValue = sig.startsWith('v1,') ? sig.slice(3) : sig;
       if (sigValue === expected) return true;
     }
+
+    // Debug log — remove after fixing
+    // console.log('Signature mismatch');
+    // console.log('Expected:', expected);
+    // console.log('Received:', webhookSignature);
+    // console.log('Signed content prefix:', signedContent.slice(0, 80));
     return false;
-  } catch {
+  } catch (err) {
+    console.error('Signature verification error:', err);
     return false;
   }
 }
@@ -33,7 +44,6 @@ function verifyDodoSignature(
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function extractAccountId(data: any): string | null {
-  // Check both possible metadata locations Dodo sends
   return (
     data?.customer?.metadata?.account_id ??
     data?.metadata?.account_id ??
@@ -47,11 +57,10 @@ async function handlePaymentSucceeded(data: any): Promise<void> {
   const accountId = extractAccountId(data);
 
   if (!accountId) {
-    console.warn('payment.succeeded — no account_id in metadata. data.customer:', data?.customer);
+    console.warn('payment.succeeded — no account_id in metadata. customer:', JSON.stringify(data?.customer));
     return;
   }
 
-  // Idempotent — safe to call multiple times
   const existing = await dbQuery<{ plan: string }>(
     `select plan from individual_accounts where id = $1`,
     [accountId]
@@ -72,44 +81,32 @@ async function handlePaymentSucceeded(data: any): Promise<void> {
 
 async function handleRefundSucceeded(data: any): Promise<void> {
   const accountId = extractAccountId(data);
-
-  if (!accountId) {
-    console.warn('refund.succeeded — no account_id in metadata');
-    return;
-  }
+  if (!accountId) { console.warn('refund.succeeded — no account_id'); return; }
 
   await dbQuery(
     `update individual_accounts set plan = 'free', updated_at = now() where id = $1`,
     [accountId]
   );
-
   console.log(`Downgraded account_id=${accountId} to free after refund`);
 }
 
 async function handleSubscriptionCancelled(data: any): Promise<void> {
   const accountId = extractAccountId(data);
-
-  if (!accountId) {
-    console.warn('subscription.cancelled — no account_id in metadata');
-    return;
-  }
+  if (!accountId) { console.warn('subscription.cancelled — no account_id'); return; }
 
   await dbQuery(
     `update individual_accounts set plan = 'free', updated_at = now() where id = $1`,
     [accountId]
   );
-
   console.log(`Downgraded account_id=${accountId} to free after cancellation`);
 }
 
 async function handlePaymentFailed(data: any): Promise<void> {
-  // Log only for now — could send an email via Resend in the future
-  console.warn('payment.failed — payment_id:', data?.payment_id, 'customer:', data?.customer?.email);
+  console.warn('payment.failed — payment_id:', data?.payment_id, 'email:', data?.customer?.email);
 }
 
 async function handleAbandonedCheckout(data: any): Promise<void> {
-  // Could trigger a follow-up email via Resend
-  console.log('abandoned_checkout.detected — customer:', data?.customer?.email);
+  console.log('abandoned_checkout.detected — email:', data?.customer?.email);
 }
 
 // ─── Route ────────────────────────────────────────────────────────────────────
@@ -117,7 +114,7 @@ async function handleAbandonedCheckout(data: any): Promise<void> {
 export async function POST(request: NextRequest) {
   const webhookSecret = process.env.DODO_WEBHOOK_SECRET;
   if (!webhookSecret) {
-    console.error('DODO_WEBHOOK_SECRET not set in environment');
+    console.error('DODO_WEBHOOK_SECRET not set');
     return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 });
   }
 
@@ -128,13 +125,12 @@ export async function POST(request: NextRequest) {
   const webhookSignature = request.headers.get('webhook-signature') ?? '';
 
   if (!webhookId || !webhookTimestamp || !webhookSignature) {
-    console.error('Missing svix webhook headers');
+    console.error('Missing webhook headers', { webhookId: !!webhookId, webhookTimestamp: !!webhookTimestamp, webhookSignature: !!webhookSignature });
     return NextResponse.json({ error: 'Missing webhook headers' }, { status: 400 });
   }
 
   const isValid = verifyDodoSignature(rawBody, webhookId, webhookTimestamp, webhookSignature, webhookSecret);
   if (!isValid) {
-    console.error('Webhook signature mismatch');
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 
@@ -142,39 +138,33 @@ export async function POST(request: NextRequest) {
   try {
     event = JSON.parse(rawBody);
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  console.log(`Dodo webhook: ${event.type}`);
+  console.log(`Dodo webhook received: ${event.type}`);
 
   try {
     switch (event.type) {
       case 'payment.succeeded':
         await handlePaymentSucceeded(event.data);
         break;
-
       case 'refund.succeeded':
         await handleRefundSucceeded(event.data);
         break;
-
       case 'subscription.cancelled':
         await handleSubscriptionCancelled(event.data);
         break;
-
       case 'payment.failed':
         await handlePaymentFailed(event.data);
         break;
-
       case 'abandoned_checkout.detected':
         await handleAbandonedCheckout(event.data);
         break;
-
       default:
-        console.log(`Unhandled webhook event: ${event.type}`);
+        console.log(`Unhandled event: ${event.type}`);
     }
   } catch (err) {
-    console.error(`Error handling ${event.type}:`, err);
-    // Return 500 so Dodo retries
+    console.error(`Error in handler for ${event.type}:`, err);
     return NextResponse.json({ error: 'Handler failed' }, { status: 500 });
   }
 
