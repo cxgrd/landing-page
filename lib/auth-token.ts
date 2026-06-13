@@ -3,11 +3,16 @@ import { normalizePlan, type SubscriptionPlan } from './plans';
 
 const HEADER = { alg: 'HS256', typ: 'JWT' } as const;
 
+export type OrgRole = 'owner' | 'admin' | 'dev';
+
 export interface CxgrdAuthTokenPayload {
   sub: string;
   email: string;
   plan: SubscriptionPlan;
   github_login?: string;
+  // Team fields — only present for team plan members
+  team_id?: string;
+  team_role?: OrgRole;
   iat: number;
   exp: number;
 }
@@ -68,14 +73,12 @@ function decodeAndVerify(token: string): Record<string, unknown> | null {
     const expected = Buffer.from(expectedSignature, 'utf8');
     const actual = Buffer.from(encodedSignature, 'utf8');
 
-    // Signature mismatch — return null instead of throwing
     if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
       return null;
     }
 
     return JSON.parse(base64UrlDecode(encodedPayload).toString('utf8')) as Record<string, unknown>;
   } catch {
-    // Any unexpected error — return null cleanly
     return null;
   }
 }
@@ -83,6 +86,11 @@ function decodeAndVerify(token: string): Record<string, unknown> | null {
 function isExpired(exp: unknown): boolean {
   if (typeof exp !== 'number') return true;
   return Math.floor(Date.now() / 1000) >= exp;
+}
+
+function normalizeRole(role: unknown): OrgRole | undefined {
+  if (role === 'owner' || role === 'admin' || role === 'dev') return role;
+  return undefined;
 }
 
 export function createAuthToken(
@@ -109,6 +117,8 @@ export function verifyAuthToken(token: string): CxgrdAuthTokenPayload | null {
       email: decoded.email,
       plan: normalizePlan(typeof decoded.plan === 'string' ? decoded.plan : 'free'),
       github_login: typeof decoded.github_login === 'string' ? decoded.github_login : undefined,
+      team_id: typeof decoded.team_id === 'string' ? decoded.team_id : undefined,
+      team_role: normalizeRole(decoded.team_role),
       iat: typeof decoded.iat === 'number' ? decoded.iat : 0,
       exp: typeof decoded.exp === 'number' ? decoded.exp : 0,
     };

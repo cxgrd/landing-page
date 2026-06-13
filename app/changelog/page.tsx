@@ -4,10 +4,20 @@ import { Footer } from "@/components/Footer";
 
 const releases = [
   {
-    version: "v0.1.16",
-    date: "June 7, 2026",
+    version: "v0.1.17",
+    date: "June 13, 2026",
     badge: "latest",
     badgeColor: "emerald",
+    changes: [
+      { type: "new", text: "Started work on Team tier" },
+      { type: "new", text: "team_member and role schemas , role based /check middleware and --team flag for scan command" },
+    ],
+  },
+  {
+    version: "v0.1.16",
+    date: "June 7, 2026",
+    badge: null,
+    badgeColor: null,
     changes: [
       { type: "improved", text: "Blast radius calculation now normalizes Python dot-notation imports (e.g. app.oauth) to file paths, fixing 0-affected-files false negatives" },
       { type: "improved", text: "Symbol extraction now catches class methods and async functions, not just top-level definitions" },
