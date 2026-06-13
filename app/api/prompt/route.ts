@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
     if (!isProPlan(claims.plan)) {
       return NextResponse.json(
-        { error: "Prompt enrichment requires Pro. Upgrade at https://cxgrd.com/upgrade" },
+        { error: "Prompt enrichment requires Pro. Upgrade at https://cxgrd.com/pricing" },
         { status: 403 }
       );
     }
