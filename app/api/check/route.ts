@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     if (!isProPlan(claims.plan)) {
       return NextResponse.json(
-        { error: 'Check requires Pro or Team plan. Upgrade at https://cxgrd.com/upgrade' },
+        { error: 'Check requires Pro or Team plan. Upgrade at https://cxgrd.com/pricing' },
         { status: 403 },
       );
     }

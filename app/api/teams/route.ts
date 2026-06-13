@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     if (!isTeamPlan(claims.plan)) {
       return NextResponse.json(
-        { error: 'Team plan required. Upgrade at https://cxgrd.com/upgrade' },
+        { error: 'Team plan required. Upgrade at https://cxgrd.com/pricing' },
         { status: 403 },
       );
     }
