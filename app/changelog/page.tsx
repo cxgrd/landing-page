@@ -4,10 +4,20 @@ import { Footer } from "@/components/Footer";
 
 const releases = [
   {
-    version: "v0.1.17",
-    date: "June 13, 2026",
+    version: "v0.1.19",
+    date: "June 14, 2026",
     badge: "latest",
     badgeColor: "emerald",
+    changes: [
+      { type: "new", text: "shared dep graph sync (POST /teams/:id/graph/sync) route created" },
+      { type: "new", text: "pushgraph(), pullgraph() and fetchOrgPolicy() functions implemented in CLI" },
+    ],
+  },
+  {
+    version: "v0.1.17",
+    date: "June 13, 2026",
+    badge: null,
+    badgeColor: null,
     changes: [
       { type: "new", text: "Started work on Team tier" },
       { type: "new", text: "team_member and role schemas , role based /check middleware and --team flag for scan command" },

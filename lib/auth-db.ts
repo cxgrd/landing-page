@@ -38,6 +38,16 @@ interface TeamMemberRow {
   joined_at: Date | string | null;
 }
 
+interface TeamGraphSnapshotRow {
+  id: string;
+  team_id: string;
+  repo_id: string;
+  commit_sha: string;
+  uploaded_by: string;
+  graph_bundle: unknown;
+  created_at: Date | string;
+}
+
 export interface IndividualAccount {
   id: string;
   githubId: string;
@@ -74,10 +84,21 @@ export interface TeamMember {
   joinedAt: Date | null;
 }
 
-// Pending = waiting for browser login (short)
+export interface TeamGraphSnapshot {
+  id: string;
+  teamId: string;
+  repoId: string;
+  commitSha: string;
+  uploadedBy: string;
+  graphBundle: unknown;
+  createdAt: Date;
+}
+
 const PENDING_SESSION_TTL = `interval '15 minutes'`;
-// Authorized = user is logged in (long — don't make users re-login constantly)
 const AUTHORIZED_SESSION_TTL = `interval '30 days'`;
+
+// Keep only the last N snapshots per (team, repo) to bound storage
+const GRAPH_SNAPSHOT_RETENTION = 10;
 
 let schemaEnsured = false;
 
@@ -115,8 +136,6 @@ export async function ensureAuthSchema(): Promise<void> {
     `create index if not exists cli_auth_sessions_expiry_idx on cli_auth_sessions (expires_at);`,
   );
 
-  // --- Team tables ---
-
   await dbQuery(`
     create table if not exists teams (
       id uuid primary key default gen_random_uuid(),
@@ -138,10 +157,6 @@ export async function ensureAuthSchema(): Promise<void> {
       status text not null default 'pending' check (status in ('pending', 'active')),
       joined_at timestamptz,
       created_at timestamptz not null default now(),
-      -- active members: unique by (team_id, account_id)
-      -- pending invites: account_id is null, keyed by (team_id, invited_email)
-      -- We enforce uniqueness via the partial indexes below instead of a table-level PK
-      -- so that pending rows (account_id = null) don't conflict with each other
       unique (team_id, account_id)
     );
   `);
@@ -154,9 +169,28 @@ export async function ensureAuthSchema(): Promise<void> {
     `create unique index if not exists team_members_invite_idx on team_members (team_id, invited_email) where status = 'pending';`,
   );
 
-  // Index so activateTeamMember can find pending invites by email quickly (across all teams)
   await dbQuery(
     `create index if not exists team_members_pending_email_idx on team_members (invited_email) where status = 'pending';`,
+  );
+
+  // Graph snapshots — one full bundle per commit SHA, pruned to last N per (team, repo)
+  await dbQuery(`
+    create table if not exists team_graph_snapshots (
+      id uuid primary key default gen_random_uuid(),
+      team_id uuid not null references teams(id) on delete cascade,
+      repo_id text not null,
+      commit_sha text not null,
+      uploaded_by text not null,
+      graph_bundle jsonb not null,
+      created_at timestamptz not null default now(),
+      -- one snapshot per (team, repo, commit) — re-push of same SHA overwrites
+      unique (team_id, repo_id, commit_sha)
+    );
+  `);
+
+  // Fast lookup for latest snapshot per (team, repo)
+  await dbQuery(
+    `create index if not exists team_graph_snapshots_latest_idx on team_graph_snapshots (team_id, repo_id, created_at desc);`,
   );
 
   schemaEnsured = true;
@@ -211,10 +245,20 @@ function mapMember(row: TeamMemberRow): TeamMember {
     invitedEmail: row.invited_email,
     status: row.status,
     joinedAt: row.joined_at
-      ? row.joined_at instanceof Date
-        ? row.joined_at
-        : new Date(row.joined_at)
+      ? row.joined_at instanceof Date ? row.joined_at : new Date(row.joined_at)
       : null,
+  };
+}
+
+function mapSnapshot(row: TeamGraphSnapshotRow): TeamGraphSnapshot {
+  return {
+    id: row.id,
+    teamId: row.team_id,
+    repoId: row.repo_id,
+    commitSha: row.commit_sha,
+    uploadedBy: row.uploaded_by,
+    graphBundle: row.graph_bundle,
+    createdAt: row.created_at instanceof Date ? row.created_at : new Date(row.created_at),
   };
 }
 
@@ -245,10 +289,7 @@ export async function upsertIndividualAccount(input: {
     [input.githubId, input.githubLogin, input.email.toLowerCase(), requestedPlan],
   );
 
-  if (!result.rows[0]) {
-    throw new Error('Failed to store account');
-  }
-
+  if (!result.rows[0]) throw new Error('Failed to store account');
   return mapAccount(result.rows[0]);
 }
 
@@ -264,7 +305,6 @@ export async function getCliAuthSession(sessionId: string): Promise<CliAuthSessi
     `,
     [sessionId],
   );
-
   if (!result.rows[0]) return null;
   return mapSession(result.rows[0]);
 }
@@ -278,11 +318,8 @@ export async function ensurePendingCliAuthSession(sessionId: string): Promise<Cl
     `,
     [sessionId],
   );
-
   const session = await getCliAuthSession(sessionId);
-  if (!session) {
-    throw new Error('Failed to create auth session');
-  }
+  if (!session) throw new Error('Failed to create auth session');
   return session;
 }
 
@@ -360,7 +397,6 @@ export async function createTeam(input: {
   if (!result.rows[0]) throw new Error('Failed to create team');
   const team = mapTeam(result.rows[0]);
 
-  // Auto-add owner as first active member
   await dbQuery(
     `
       insert into team_members (team_id, account_id, role, status, joined_at)
@@ -381,10 +417,7 @@ export async function getTeamById(teamId: string): Promise<Team | null> {
   return result.rows[0] ? mapTeam(result.rows[0]) : null;
 }
 
-export async function getTeamMember(
-  teamId: string,
-  accountId: string,
-): Promise<TeamMember | null> {
+export async function getTeamMember(teamId: string, accountId: string): Promise<TeamMember | null> {
   const result = await dbQuery<TeamMemberRow>(
     `
       select team_id, account_id, role, invited_email, status, joined_at
@@ -437,8 +470,6 @@ export async function inviteTeamMember(input: {
   );
 }
 
-// Called at GitHub OAuth callback — finds any pending invite for this email
-// (across all teams) and activates it. No teamId needed.
 export async function activateTeamMember(input: {
   accountId: string;
   email: string;
@@ -457,7 +488,6 @@ export async function activateTeamMember(input: {
   return result.rows[0] ? mapMember(result.rows[0]) : null;
 }
 
-// Returns the team + role for a given account, if any active membership exists
 export async function getAccountTeam(
   accountId: string,
 ): Promise<{ team: Team; role: OrgRole } | null> {
@@ -476,4 +506,82 @@ export async function getAccountTeam(
     team: mapTeam(result.rows[0]),
     role: normalizeRole(result.rows[0].role),
   };
+}
+
+// ─── Graph snapshots ──────────────────────────────────────────────────────────
+
+export async function upsertTeamGraphSnapshot(input: {
+  teamId: string;
+  repoId: string;
+  commitSha: string;
+  uploadedBy: string;
+  graphBundle: unknown;
+}): Promise<TeamGraphSnapshot> {
+  const result = await dbQuery<TeamGraphSnapshotRow>(
+    `
+      insert into team_graph_snapshots (team_id, repo_id, commit_sha, uploaded_by, graph_bundle)
+      values ($1, $2, $3, $4, $5::jsonb)
+      on conflict (team_id, repo_id, commit_sha) do update
+      set uploaded_by = excluded.uploaded_by,
+          graph_bundle = excluded.graph_bundle,
+          created_at = now()
+      returning id, team_id, repo_id, commit_sha, uploaded_by, graph_bundle, created_at
+    `,
+    [input.teamId, input.repoId, input.commitSha, input.uploadedBy, JSON.stringify(input.graphBundle)],
+  );
+
+  if (!result.rows[0]) throw new Error('Failed to store graph snapshot');
+  const snapshot = mapSnapshot(result.rows[0]);
+
+  // Prune old snapshots — keep only the last N per (team, repo)
+  await dbQuery(
+    `
+      delete from team_graph_snapshots
+      where team_id = $1
+        and repo_id = $2
+        and id not in (
+          select id from team_graph_snapshots
+          where team_id = $1 and repo_id = $2
+          order by created_at desc
+          limit $3
+        )
+    `,
+    [input.teamId, input.repoId, GRAPH_SNAPSHOT_RETENTION],
+  );
+
+  return snapshot;
+}
+
+export async function getLatestTeamGraphSnapshot(
+  teamId: string,
+  repoId: string,
+): Promise<TeamGraphSnapshot | null> {
+  const result = await dbQuery<TeamGraphSnapshotRow>(
+    `
+      select id, team_id, repo_id, commit_sha, uploaded_by, graph_bundle, created_at
+      from team_graph_snapshots
+      where team_id = $1 and repo_id = $2
+      order by created_at desc
+      limit 1
+    `,
+    [teamId, repoId],
+  );
+  return result.rows[0] ? mapSnapshot(result.rows[0]) : null;
+}
+
+export async function getTeamGraphSnapshotBySha(
+  teamId: string,
+  repoId: string,
+  commitSha: string,
+): Promise<TeamGraphSnapshot | null> {
+  const result = await dbQuery<TeamGraphSnapshotRow>(
+    `
+      select id, team_id, repo_id, commit_sha, uploaded_by, graph_bundle, created_at
+      from team_graph_snapshots
+      where team_id = $1 and repo_id = $2 and commit_sha = $3
+      limit 1
+    `,
+    [teamId, repoId, commitSha],
+  );
+  return result.rows[0] ? mapSnapshot(result.rows[0]) : null;
 }
