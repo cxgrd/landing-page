@@ -48,6 +48,39 @@ interface TeamGraphSnapshotRow {
   created_at: Date | string;
 }
 
+interface AuditLogRow {
+  id: string;
+  team_id: string;
+  account_id: string;
+  actor_email: string;
+  actor_role: string;
+  event_type: string;
+  repo_id: string | null;
+  git_ref: string | null;
+  risk_level: string | null;
+  blast_radius: number | null;
+  passed: boolean | null;
+  summary: string | null;
+  metadata: unknown;
+  created_at: Date | string;
+}
+
+interface HealthSnapshotRow {
+  id: string;
+  team_id: string;
+  repo_id: string;
+  commit_sha: string;
+  scanned_by: string;
+  file_count: number;
+  dep_count: number;
+  avg_blast_radius: number;
+  max_blast_radius: number;
+  coupling_score: number;
+  hub_count: number;
+  hotspots: unknown;
+  created_at: Date | string;
+}
+
 export interface IndividualAccount {
   id: string;
   githubId: string;
@@ -94,11 +127,46 @@ export interface TeamGraphSnapshot {
   createdAt: Date;
 }
 
+export interface AuditLogEntry {
+  id: string;
+  teamId: string;
+  accountId: string;
+  actorEmail: string;
+  actorRole: OrgRole;
+  eventType: string;
+  repoId: string | null;
+  gitRef: string | null;
+  riskLevel: string | null;
+  blastRadius: number | null;
+  passed: boolean | null;
+  summary: string | null;
+  metadata: unknown;
+  createdAt: Date;
+}
+
+export interface HealthSnapshot {
+  id: string;
+  teamId: string;
+  repoId: string;
+  commitSha: string;
+  scannedBy: string;
+  fileCount: number;
+  depCount: number;
+  avgBlastRadius: number;
+  maxBlastRadius: number;
+  couplingScore: number;
+  hubCount: number;
+  hotspots: string[];
+  createdAt: Date;
+}
+
 const PENDING_SESSION_TTL = `interval '15 minutes'`;
 const AUTHORIZED_SESSION_TTL = `interval '30 days'`;
-
-// Keep only the last N snapshots per (team, repo) to bound storage
 const GRAPH_SNAPSHOT_RETENTION = 10;
+// Keep 90 days of audit log per team — old rows pruned on insert
+const AUDIT_LOG_RETENTION_DAYS = 90;
+// Keep 60 health snapshots per (team, repo) — enough for ~2 months of daily scans
+const HEALTH_SNAPSHOT_RETENTION = 60;
 
 let schemaEnsured = false;
 
@@ -164,16 +232,13 @@ export async function ensureAuthSchema(): Promise<void> {
   await dbQuery(
     `create index if not exists team_members_account_idx on team_members (account_id) where account_id is not null;`,
   );
-
   await dbQuery(
     `create unique index if not exists team_members_invite_idx on team_members (team_id, invited_email) where status = 'pending';`,
   );
-
   await dbQuery(
     `create index if not exists team_members_pending_email_idx on team_members (invited_email) where status = 'pending';`,
   );
 
-  // Graph snapshots — one full bundle per commit SHA, pruned to last N per (team, repo)
   await dbQuery(`
     create table if not exists team_graph_snapshots (
       id uuid primary key default gen_random_uuid(),
@@ -183,14 +248,68 @@ export async function ensureAuthSchema(): Promise<void> {
       uploaded_by text not null,
       graph_bundle jsonb not null,
       created_at timestamptz not null default now(),
-      -- one snapshot per (team, repo, commit) — re-push of same SHA overwrites
       unique (team_id, repo_id, commit_sha)
     );
   `);
-
-  // Fast lookup for latest snapshot per (team, repo)
   await dbQuery(
     `create index if not exists team_graph_snapshots_latest_idx on team_graph_snapshots (team_id, repo_id, created_at desc);`,
+  );
+
+  // ── Audit log ────────────────────────────────────────────────────────────────
+  // One row per CLI command a team member runs (scan, check, input, prompt, sync)
+  await dbQuery(`
+    create table if not exists team_audit_log (
+      id uuid primary key default gen_random_uuid(),
+      team_id uuid not null references teams(id) on delete cascade,
+      account_id uuid not null references individual_accounts(id) on delete cascade,
+      actor_email text not null,
+      actor_role text not null check (actor_role in ('owner', 'admin', 'dev')),
+      event_type text not null,
+      repo_id text,
+      git_ref text,
+      risk_level text,
+      blast_radius int,
+      passed boolean,
+      summary text,
+      metadata jsonb,
+      created_at timestamptz not null default now()
+    );
+  `);
+  // Dashboard feed: latest events for a team
+  await dbQuery(
+    `create index if not exists team_audit_log_team_time_idx on team_audit_log (team_id, created_at desc);`,
+  );
+  // Per-member activity view
+  await dbQuery(
+    `create index if not exists team_audit_log_actor_idx on team_audit_log (team_id, account_id, created_at desc);`,
+  );
+
+  // ── Health snapshots ──────────────────────────────────────────────────────────
+  // One row per successful team scan — powers trend charts on dashboard
+  await dbQuery(`
+    create table if not exists team_health_snapshots (
+      id uuid primary key default gen_random_uuid(),
+      team_id uuid not null references teams(id) on delete cascade,
+      repo_id text not null,
+      commit_sha text not null,
+      scanned_by text not null,
+      file_count int not null default 0,
+      dep_count int not null default 0,
+      avg_blast_radius numeric(6,2) not null default 0,
+      max_blast_radius int not null default 0,
+      coupling_score numeric(4,2) not null default 0,
+      hub_count int not null default 0,
+      hotspots jsonb not null default '[]',
+      created_at timestamptz not null default now()
+    );
+  `);
+  // Latest snapshot per (team, repo) — used for current health card
+  await dbQuery(
+    `create index if not exists team_health_snapshots_latest_idx on team_health_snapshots (team_id, repo_id, created_at desc);`,
+  );
+  // Time-series for trend chart
+  await dbQuery(
+    `create index if not exists team_health_snapshots_trend_idx on team_health_snapshots (team_id, repo_id, created_at asc);`,
   );
 
   schemaEnsured = true;
@@ -262,6 +381,43 @@ function mapSnapshot(row: TeamGraphSnapshotRow): TeamGraphSnapshot {
   };
 }
 
+function mapAuditLog(row: AuditLogRow): AuditLogEntry {
+  return {
+    id: row.id,
+    teamId: row.team_id,
+    accountId: row.account_id,
+    actorEmail: row.actor_email,
+    actorRole: normalizeRole(row.actor_role),
+    eventType: row.event_type,
+    repoId: row.repo_id,
+    gitRef: row.git_ref,
+    riskLevel: row.risk_level,
+    blastRadius: row.blast_radius,
+    passed: row.passed,
+    summary: row.summary,
+    metadata: row.metadata,
+    createdAt: row.created_at instanceof Date ? row.created_at : new Date(row.created_at),
+  };
+}
+
+function mapHealthSnapshot(row: HealthSnapshotRow): HealthSnapshot {
+  return {
+    id: row.id,
+    teamId: row.team_id,
+    repoId: row.repo_id,
+    commitSha: row.commit_sha,
+    scannedBy: row.scanned_by,
+    fileCount: row.file_count,
+    depCount: row.dep_count,
+    avgBlastRadius: Number(row.avg_blast_radius),
+    maxBlastRadius: row.max_blast_radius,
+    couplingScore: Number(row.coupling_score),
+    hubCount: row.hub_count,
+    hotspots: Array.isArray(row.hotspots) ? (row.hotspots as string[]) : [],
+    createdAt: row.created_at instanceof Date ? row.created_at : new Date(row.created_at),
+  };
+}
+
 // ─── Individual accounts ─────────────────────────────────────────────────────
 
 export async function upsertIndividualAccount(input: {
@@ -271,7 +427,6 @@ export async function upsertIndividualAccount(input: {
   upgradeToPro: boolean;
 }): Promise<IndividualAccount> {
   const requestedPlan: SubscriptionPlan = input.upgradeToPro ? 'pro' : 'free';
-
   const result = await dbQuery<AccountRow>(
     `
       insert into individual_accounts (github_id, github_login, email, plan)
@@ -288,7 +443,6 @@ export async function upsertIndividualAccount(input: {
     `,
     [input.githubId, input.githubLogin, input.email.toLowerCase(), requestedPlan],
   );
-
   if (!result.rows[0]) throw new Error('Failed to store account');
   return mapAccount(result.rows[0]);
 }
@@ -297,12 +451,8 @@ export async function upsertIndividualAccount(input: {
 
 export async function getCliAuthSession(sessionId: string): Promise<CliAuthSession | null> {
   const result = await dbQuery<SessionRow>(
-    `
-      select session_id, status, token, email, plan, error, expires_at
-      from cli_auth_sessions
-      where session_id = $1
-      limit 1
-    `,
+    `select session_id, status, token, email, plan, error, expires_at
+     from cli_auth_sessions where session_id = $1 limit 1`,
     [sessionId],
   );
   if (!result.rows[0]) return null;
@@ -311,11 +461,9 @@ export async function getCliAuthSession(sessionId: string): Promise<CliAuthSessi
 
 export async function ensurePendingCliAuthSession(sessionId: string): Promise<CliAuthSession> {
   await dbQuery(
-    `
-      insert into cli_auth_sessions (session_id, status, expires_at, updated_at)
-      values ($1, 'pending', now() + ${PENDING_SESSION_TTL}, now())
-      on conflict (session_id) do nothing
-    `,
+    `insert into cli_auth_sessions (session_id, status, expires_at, updated_at)
+     values ($1, 'pending', now() + ${PENDING_SESSION_TTL}, now())
+     on conflict (session_id) do nothing`,
     [sessionId],
   );
   const session = await getCliAuthSession(sessionId);
@@ -331,37 +479,22 @@ export async function markCliAuthSessionAuthorized(input: {
   plan: SubscriptionPlan;
 }): Promise<void> {
   await dbQuery(
-    `
-      insert into cli_auth_sessions (session_id, status, account_id, token, email, plan, error, expires_at, updated_at)
-      values ($1, 'authorized', $2, $3, $4, $5, null, now() + ${AUTHORIZED_SESSION_TTL}, now())
-      on conflict (session_id) do update
-      set status = 'authorized',
-          account_id = excluded.account_id,
-          token = excluded.token,
-          email = excluded.email,
-          plan = excluded.plan,
-          error = null,
-          expires_at = now() + ${AUTHORIZED_SESSION_TTL},
-          updated_at = now()
-    `,
+    `insert into cli_auth_sessions (session_id, status, account_id, token, email, plan, error, expires_at, updated_at)
+     values ($1, 'authorized', $2, $3, $4, $5, null, now() + ${AUTHORIZED_SESSION_TTL}, now())
+     on conflict (session_id) do update
+     set status = 'authorized', account_id = excluded.account_id, token = excluded.token,
+         email = excluded.email, plan = excluded.plan, error = null,
+         expires_at = now() + ${AUTHORIZED_SESSION_TTL}, updated_at = now()`,
     [input.sessionId, input.accountId, input.token, input.email, input.plan],
   );
 }
 
-export async function markCliAuthSessionError(
-  sessionId: string,
-  errorMessage: string,
-): Promise<void> {
+export async function markCliAuthSessionError(sessionId: string, errorMessage: string): Promise<void> {
   await dbQuery(
-    `
-      insert into cli_auth_sessions (session_id, status, error, expires_at, updated_at)
-      values ($1, 'error', $2, now() + ${PENDING_SESSION_TTL}, now())
-      on conflict (session_id) do update
-      set status = 'error',
-          error = excluded.error,
-          token = null,
-          updated_at = now()
-    `,
+    `insert into cli_auth_sessions (session_id, status, error, expires_at, updated_at)
+     values ($1, 'error', $2, now() + ${PENDING_SESSION_TTL}, now())
+     on conflict (session_id) do update
+     set status = 'error', error = excluded.error, token = null, updated_at = now()`,
     [sessionId, errorMessage.slice(0, 500)],
   );
 }
@@ -369,43 +502,23 @@ export async function markCliAuthSessionError(
 // ─── Teams ───────────────────────────────────────────────────────────────────
 
 function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 48);
+  return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48);
 }
 
-export async function createTeam(input: {
-  name: string;
-  ownerId: string;
-  seatCount: number;
-}): Promise<Team> {
-  const baseSlug = slugify(input.name);
-  const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 6)}`;
-
+export async function createTeam(input: { name: string; ownerId: string; seatCount: number }): Promise<Team> {
+  const slug = `${slugify(input.name)}-${Math.random().toString(36).slice(2, 6)}`;
   const result = await dbQuery<TeamRow>(
-    `
-      insert into teams (name, slug, owner_id, seat_count)
-      values ($1, $2, $3, $4)
-      returning id, name, slug, owner_id, seat_count, created_at
-    `,
+    `insert into teams (name, slug, owner_id, seat_count) values ($1, $2, $3, $4)
+     returning id, name, slug, owner_id, seat_count, created_at`,
     [input.name.trim(), slug, input.ownerId, input.seatCount],
   );
-
   if (!result.rows[0]) throw new Error('Failed to create team');
   const team = mapTeam(result.rows[0]);
-
   await dbQuery(
-    `
-      insert into team_members (team_id, account_id, role, status, joined_at)
-      values ($1, $2, 'owner', 'active', now())
-      on conflict (team_id, account_id) do nothing
-    `,
+    `insert into team_members (team_id, account_id, role, status, joined_at)
+     values ($1, $2, 'owner', 'active', now()) on conflict (team_id, account_id) do nothing`,
     [team.id, input.ownerId],
   );
-
   return team;
 }
 
@@ -419,12 +532,8 @@ export async function getTeamById(teamId: string): Promise<Team | null> {
 
 export async function getTeamMember(teamId: string, accountId: string): Promise<TeamMember | null> {
   const result = await dbQuery<TeamMemberRow>(
-    `
-      select team_id, account_id, role, invited_email, status, joined_at
-      from team_members
-      where team_id = $1 and account_id = $2
-      limit 1
-    `,
+    `select team_id, account_id, role, invited_email, status, joined_at
+     from team_members where team_id = $1 and account_id = $2 limit 1`,
     [teamId, accountId],
   );
   return result.rows[0] ? mapMember(result.rows[0]) : null;
@@ -432,156 +541,220 @@ export async function getTeamMember(teamId: string, accountId: string): Promise<
 
 export async function listTeamMembers(teamId: string): Promise<TeamMember[]> {
   const result = await dbQuery<TeamMemberRow>(
-    `
-      select team_id, account_id, role, invited_email, status, joined_at
-      from team_members
-      where team_id = $1
-      order by joined_at asc nulls last
-    `,
+    `select team_id, account_id, role, invited_email, status, joined_at
+     from team_members where team_id = $1 order by joined_at asc nulls last`,
     [teamId],
   );
   return result.rows.map(mapMember);
 }
 
-export async function inviteTeamMember(input: {
-  teamId: string;
-  invitedEmail: string;
-  role: OrgRole;
-}): Promise<void> {
+export async function inviteTeamMember(input: { teamId: string; invitedEmail: string; role: OrgRole }): Promise<void> {
   const team = await getTeamById(input.teamId);
   if (!team) throw new Error('Team not found');
-
-  const membersResult = await dbQuery<{ count: string }>(
-    `select count(*) as count from team_members where team_id = $1`,
-    [input.teamId],
-  );
-  const currentCount = parseInt(membersResult.rows[0]?.count ?? '0', 10);
-  if (currentCount >= team.seatCount) {
+  const count = await dbQuery<{ count: string }>(`select count(*) as count from team_members where team_id = $1`, [input.teamId]);
+  if (parseInt(count.rows[0]?.count ?? '0', 10) >= team.seatCount) {
     throw new Error(`Seat limit reached (${team.seatCount} seats). Add more seats to invite.`);
   }
-
   await dbQuery(
-    `
-      insert into team_members (team_id, account_id, role, invited_email, status)
-      values ($1, null, $2, $3, 'pending')
-      on conflict (team_id, invited_email) where status = 'pending' do nothing
-    `,
+    `insert into team_members (team_id, account_id, role, invited_email, status)
+     values ($1, null, $2, $3, 'pending')
+     on conflict (team_id, invited_email) where status = 'pending' do nothing`,
     [input.teamId, input.role, input.invitedEmail.toLowerCase()],
   );
 }
 
-export async function activateTeamMember(input: {
-  accountId: string;
-  email: string;
-}): Promise<TeamMember | null> {
+export async function activateTeamMember(input: { accountId: string; email: string }): Promise<TeamMember | null> {
   const result = await dbQuery<TeamMemberRow>(
-    `
-      update team_members
-      set account_id = $1, status = 'active', joined_at = now()
-      where invited_email = $2
-        and status = 'pending'
-        and account_id is null
-      returning team_id, account_id, role, invited_email, status, joined_at
-    `,
+    `update team_members set account_id = $1, status = 'active', joined_at = now()
+     where invited_email = $2 and status = 'pending' and account_id is null
+     returning team_id, account_id, role, invited_email, status, joined_at`,
     [input.accountId, input.email.toLowerCase()],
   );
   return result.rows[0] ? mapMember(result.rows[0]) : null;
 }
 
-export async function getAccountTeam(
-  accountId: string,
-): Promise<{ team: Team; role: OrgRole } | null> {
+export async function getAccountTeam(accountId: string): Promise<{ team: Team; role: OrgRole } | null> {
   const result = await dbQuery<TeamRow & { role: string }>(
-    `
-      select t.id, t.name, t.slug, t.owner_id, t.seat_count, t.created_at, tm.role
-      from teams t
-      join team_members tm on tm.team_id = t.id
-      where tm.account_id = $1 and tm.status = 'active'
-      limit 1
-    `,
+    `select t.id, t.name, t.slug, t.owner_id, t.seat_count, t.created_at, tm.role
+     from teams t join team_members tm on tm.team_id = t.id
+     where tm.account_id = $1 and tm.status = 'active' limit 1`,
     [accountId],
   );
   if (!result.rows[0]) return null;
-  return {
-    team: mapTeam(result.rows[0]),
-    role: normalizeRole(result.rows[0].role),
-  };
+  return { team: mapTeam(result.rows[0]), role: normalizeRole(result.rows[0].role) };
 }
 
 // ─── Graph snapshots ──────────────────────────────────────────────────────────
 
 export async function upsertTeamGraphSnapshot(input: {
-  teamId: string;
-  repoId: string;
-  commitSha: string;
-  uploadedBy: string;
-  graphBundle: unknown;
+  teamId: string; repoId: string; commitSha: string; uploadedBy: string; graphBundle: unknown;
 }): Promise<TeamGraphSnapshot> {
   const result = await dbQuery<TeamGraphSnapshotRow>(
-    `
-      insert into team_graph_snapshots (team_id, repo_id, commit_sha, uploaded_by, graph_bundle)
-      values ($1, $2, $3, $4, $5::jsonb)
-      on conflict (team_id, repo_id, commit_sha) do update
-      set uploaded_by = excluded.uploaded_by,
-          graph_bundle = excluded.graph_bundle,
-          created_at = now()
-      returning id, team_id, repo_id, commit_sha, uploaded_by, graph_bundle, created_at
-    `,
+    `insert into team_graph_snapshots (team_id, repo_id, commit_sha, uploaded_by, graph_bundle)
+     values ($1, $2, $3, $4, $5::jsonb)
+     on conflict (team_id, repo_id, commit_sha) do update
+     set uploaded_by = excluded.uploaded_by, graph_bundle = excluded.graph_bundle, created_at = now()
+     returning id, team_id, repo_id, commit_sha, uploaded_by, graph_bundle, created_at`,
     [input.teamId, input.repoId, input.commitSha, input.uploadedBy, JSON.stringify(input.graphBundle)],
   );
-
   if (!result.rows[0]) throw new Error('Failed to store graph snapshot');
   const snapshot = mapSnapshot(result.rows[0]);
-
-  // Prune old snapshots — keep only the last N per (team, repo)
   await dbQuery(
-    `
-      delete from team_graph_snapshots
-      where team_id = $1
-        and repo_id = $2
-        and id not in (
-          select id from team_graph_snapshots
-          where team_id = $1 and repo_id = $2
-          order by created_at desc
-          limit $3
-        )
-    `,
+    `delete from team_graph_snapshots where team_id = $1 and repo_id = $2
+     and id not in (select id from team_graph_snapshots where team_id = $1 and repo_id = $2 order by created_at desc limit $3)`,
     [input.teamId, input.repoId, GRAPH_SNAPSHOT_RETENTION],
   );
-
   return snapshot;
 }
 
-export async function getLatestTeamGraphSnapshot(
-  teamId: string,
-  repoId: string,
-): Promise<TeamGraphSnapshot | null> {
+export async function getLatestTeamGraphSnapshot(teamId: string, repoId: string): Promise<TeamGraphSnapshot | null> {
   const result = await dbQuery<TeamGraphSnapshotRow>(
-    `
-      select id, team_id, repo_id, commit_sha, uploaded_by, graph_bundle, created_at
-      from team_graph_snapshots
-      where team_id = $1 and repo_id = $2
-      order by created_at desc
-      limit 1
-    `,
+    `select id, team_id, repo_id, commit_sha, uploaded_by, graph_bundle, created_at
+     from team_graph_snapshots where team_id = $1 and repo_id = $2 order by created_at desc limit 1`,
     [teamId, repoId],
   );
   return result.rows[0] ? mapSnapshot(result.rows[0]) : null;
 }
 
-export async function getTeamGraphSnapshotBySha(
-  teamId: string,
-  repoId: string,
-  commitSha: string,
-): Promise<TeamGraphSnapshot | null> {
+export async function getTeamGraphSnapshotBySha(teamId: string, repoId: string, commitSha: string): Promise<TeamGraphSnapshot | null> {
   const result = await dbQuery<TeamGraphSnapshotRow>(
-    `
-      select id, team_id, repo_id, commit_sha, uploaded_by, graph_bundle, created_at
-      from team_graph_snapshots
-      where team_id = $1 and repo_id = $2 and commit_sha = $3
-      limit 1
-    `,
+    `select id, team_id, repo_id, commit_sha, uploaded_by, graph_bundle, created_at
+     from team_graph_snapshots where team_id = $1 and repo_id = $2 and commit_sha = $3 limit 1`,
     [teamId, repoId, commitSha],
   );
   return result.rows[0] ? mapSnapshot(result.rows[0]) : null;
+}
+
+// ─── Audit log ───────────────────────────────────────────────────────────────
+
+export async function insertAuditEvent(input: {
+  teamId: string;
+  accountId: string;
+  actorEmail: string;
+  actorRole: OrgRole;
+  eventType: string;
+  repoId?: string;
+  gitRef?: string;
+  riskLevel?: string;
+  blastRadius?: number;
+  passed?: boolean;
+  summary?: string;
+  metadata?: Record<string, unknown>;
+}): Promise<void> {
+  await dbQuery(
+    `insert into team_audit_log
+       (team_id, account_id, actor_email, actor_role, event_type, repo_id, git_ref,
+        risk_level, blast_radius, passed, summary, metadata)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb)`,
+    [
+      input.teamId, input.accountId, input.actorEmail, input.actorRole,
+      input.eventType, input.repoId ?? null, input.gitRef ?? null,
+      input.riskLevel ?? null, input.blastRadius ?? null, input.passed ?? null,
+      input.summary ?? null, JSON.stringify(input.metadata ?? {}),
+    ],
+  );
+
+  // Prune entries older than retention window — fire-and-forget
+  dbQuery(
+    `delete from team_audit_log where team_id = $1 and created_at < now() - interval '${AUDIT_LOG_RETENTION_DAYS} days'`,
+    [input.teamId],
+  ).catch(() => {});
+}
+
+export async function listAuditLog(
+  teamId: string,
+  opts: { limit?: number; offset?: number; accountId?: string } = {},
+): Promise<AuditLogEntry[]> {
+  const limit = Math.min(opts.limit ?? 50, 200);
+  const offset = opts.offset ?? 0;
+
+  if (opts.accountId) {
+    const result = await dbQuery<AuditLogRow>(
+      `select id, team_id, account_id, actor_email, actor_role, event_type, repo_id,
+              git_ref, risk_level, blast_radius, passed, summary, metadata, created_at
+       from team_audit_log
+       where team_id = $1 and account_id = $2
+       order by created_at desc limit $3 offset $4`,
+      [teamId, opts.accountId, limit, offset],
+    );
+    return result.rows.map(mapAuditLog);
+  }
+
+  const result = await dbQuery<AuditLogRow>(
+    `select id, team_id, account_id, actor_email, actor_role, event_type, repo_id,
+            git_ref, risk_level, blast_radius, passed, summary, metadata, created_at
+     from team_audit_log
+     where team_id = $1
+     order by created_at desc limit $2 offset $3`,
+    [teamId, limit, offset],
+  );
+  return result.rows.map(mapAuditLog);
+}
+
+// ─── Health snapshots ─────────────────────────────────────────────────────────
+
+export async function insertHealthSnapshot(input: {
+  teamId: string;
+  repoId: string;
+  commitSha: string;
+  scannedBy: string;
+  fileCount: number;
+  depCount: number;
+  avgBlastRadius: number;
+  maxBlastRadius: number;
+  couplingScore: number;
+  hubCount: number;
+  hotspots: string[];
+}): Promise<HealthSnapshot> {
+  const result = await dbQuery<HealthSnapshotRow>(
+    `insert into team_health_snapshots
+       (team_id, repo_id, commit_sha, scanned_by, file_count, dep_count,
+        avg_blast_radius, max_blast_radius, coupling_score, hub_count, hotspots)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb)
+     returning *`,
+    [
+      input.teamId, input.repoId, input.commitSha, input.scannedBy,
+      input.fileCount, input.depCount, input.avgBlastRadius, input.maxBlastRadius,
+      input.couplingScore, input.hubCount, JSON.stringify(input.hotspots),
+    ],
+  );
+
+  if (!result.rows[0]) throw new Error('Failed to store health snapshot');
+  const snapshot = mapHealthSnapshot(result.rows[0]);
+
+  // Prune old snapshots — keep last N per (team, repo)
+  dbQuery(
+    `delete from team_health_snapshots where team_id = $1 and repo_id = $2
+     and id not in (
+       select id from team_health_snapshots
+       where team_id = $1 and repo_id = $2
+       order by created_at desc limit $3
+     )`,
+    [input.teamId, input.repoId, HEALTH_SNAPSHOT_RETENTION],
+  ).catch(() => {});
+
+  return snapshot;
+}
+
+export async function getLatestHealthSnapshot(teamId: string, repoId: string): Promise<HealthSnapshot | null> {
+  const result = await dbQuery<HealthSnapshotRow>(
+    `select * from team_health_snapshots
+     where team_id = $1 and repo_id = $2 order by created_at desc limit 1`,
+    [teamId, repoId],
+  );
+  return result.rows[0] ? mapHealthSnapshot(result.rows[0]) : null;
+}
+
+export async function listHealthSnapshots(
+  teamId: string,
+  repoId: string,
+  limit = 30,
+): Promise<HealthSnapshot[]> {
+  const result = await dbQuery<HealthSnapshotRow>(
+    `select * from team_health_snapshots
+     where team_id = $1 and repo_id = $2
+     order by created_at asc limit $3`,
+    [teamId, repoId, Math.min(limit, 60)],
+  );
+  return result.rows.map(mapHealthSnapshot);
 }
