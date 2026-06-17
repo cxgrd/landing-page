@@ -40,6 +40,27 @@ function mapPolicy(row: MergePolicyRow): MergePolicy {
   };
 }
 
+export async function ensureMergePolicyTable(): Promise<void> {
+  await dbQuery(`
+    create table if not exists merge_policies (
+      id uuid primary key default gen_random_uuid(),
+      team_id uuid not null references teams(id) on delete cascade,
+      repo_full_name text not null,
+      max_blast_radius int not null default 50,
+      block_on_risk text[] not null default '{critical,high}',
+      enabled boolean not null default true,
+      created_by text not null,
+      created_at timestamptz not null default now(),
+      updated_at timestamptz not null default now(),
+      unique (team_id, repo_full_name)
+    );
+  `);
+  await dbQuery(
+    `create index if not exists merge_policies_team_idx on merge_policies (team_id);`,
+  );
+}
+
+
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
 export async function upsertMergePolicy(input: {
