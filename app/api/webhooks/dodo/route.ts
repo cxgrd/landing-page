@@ -1,6 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 import { dbQuery } from '@/lib/db';
-import { createHmac } from 'crypto';
+import { createHmac, randomBytes } from 'crypto';
+import { ensureAuthSchema, createTeam } from '@/lib/auth-db';
+
+const DODO_TEAM_PRODUCT_ID = process.env.DODO_CXGRD_TEAM_KEY ?? '';
 
 // ─── Signature verification ───────────────────────────────────────────────────
 
@@ -13,27 +16,14 @@ function verifyDodoSignature(
 ): boolean {
   try {
     const signedContent = `${webhookId}.${webhookTimestamp}.${rawBody}`;
-
-    // Strip whsec_ prefix if present before base64 decoding
     const cleanSecret = secret.startsWith('whsec_') ? secret.slice(6) : secret;
     const secretBytes = Buffer.from(cleanSecret, 'base64');
-
-    const expected = createHmac('sha256', secretBytes)
-      .update(signedContent)
-      .digest('base64');
-
-    // Dodo may send multiple signatures: "v1,<sig1> v1,<sig2>"
+    const expected = createHmac('sha256', secretBytes).update(signedContent).digest('base64');
     const signatures = webhookSignature.split(' ');
     for (const sig of signatures) {
       const sigValue = sig.startsWith('v1,') ? sig.slice(3) : sig;
       if (sigValue === expected) return true;
     }
-
-    // Debug log — remove after fixing
-    // console.log('Signature mismatch');
-    // console.log('Expected:', expected);
-    // console.log('Received:', webhookSignature);
-    // console.log('Signed content prefix:', signedContent.slice(0, 80));
     return false;
   } catch (err) {
     console.error('Signature verification error:', err);
@@ -44,18 +34,32 @@ function verifyDodoSignature(
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function extractAccountId(data: any): string | null {
-  return (
-    data?.customer?.metadata?.account_id ??
-    data?.metadata?.account_id ??
-    null
-  );
+  return data?.customer?.metadata?.account_id ?? data?.metadata?.account_id ?? null;
 }
 
-// ─── Event handlers ───────────────────────────────────────────────────────────
+function extractIntentId(data: any): string | null {
+  return data?.customer?.metadata?.intent_id ?? data?.metadata?.intent_id ?? null;
+}
+
+function extractProductId(data: any): string | null {
+  return data?.product_id ?? data?.items?.[0]?.product_id ?? null;
+}
+
+// ─── Handlers ────────────────────────────────────────────────────────────────
 
 async function handlePaymentSucceeded(data: any): Promise<void> {
-  const accountId = extractAccountId(data);
+  const productId  = extractProductId(data);
+  const accountId  = extractAccountId(data);
+  const intentId   = extractIntentId(data);
+  const customerEmail = data?.customer?.email as string | undefined;
 
+  // ── Team plan payment ────────────────────────────────────────────────────
+  if (productId === DODO_TEAM_PRODUCT_ID) {
+    await handleTeamPayment({ intentId, accountId, customerEmail, data });
+    return;
+  }
+
+  // ── Pro plan payment (existing logic) ────────────────────────────────────
   if (!accountId) {
     console.warn('payment.succeeded — no account_id in metadata. customer:', JSON.stringify(data?.customer));
     return;
@@ -63,29 +67,135 @@ async function handlePaymentSucceeded(data: any): Promise<void> {
 
   const existing = await dbQuery<{ plan: string }>(
     `select plan from individual_accounts where id = $1`,
-    [accountId]
+    [accountId],
   );
-
-  if (existing.rows[0]?.plan === 'pro') {
-    console.log(`payment.succeeded — account ${accountId} already pro, skipping`);
+  if (existing.rows[0]?.plan === 'pro' || existing.rows[0]?.plan === 'team') {
+    console.log(`payment.succeeded — account ${accountId} already ${existing.rows[0].plan}, skipping`);
     return;
   }
 
   await dbQuery(
     `update individual_accounts set plan = 'pro', updated_at = now() where id = $1`,
-    [accountId]
+    [accountId],
+  );
+  console.log(`✅ Pro activated for account_id=${accountId}`);
+}
+
+async function handleTeamPayment(input: {
+  intentId: string | null;
+  accountId: string | null;
+  customerEmail: string | undefined;
+  data: any;
+}): Promise<void> {
+  const { intentId, accountId, customerEmail, data } = input;
+
+  await ensureAuthSchema();
+
+  // Ensure intent table exists
+  await dbQuery(`
+    create table if not exists team_purchase_intents (
+      id uuid primary key,
+      team_name text not null,
+      seat_count int not null,
+      email text not null,
+      used boolean not null default false,
+      created_at timestamptz not null default now(),
+      expires_at timestamptz not null default (now() + interval '2 hours')
+    );
+  `);
+
+  // ── Resolve team name + seat count ────────────────────────────────────────
+  let teamName  = (data?.metadata?.team_name as string | undefined) ?? 'My Team';
+  let seatCount = parseInt(data?.metadata?.seat_count ?? data?.quantity ?? '5', 10);
+
+  if (intentId) {
+    const intent = await dbQuery<{ team_name: string; seat_count: number; email: string; used: boolean }>(
+      `select team_name, seat_count, email, used from team_purchase_intents where id = $1`,
+      [intentId],
+    );
+    if (intent.rows[0] && !intent.rows[0].used) {
+      teamName  = intent.rows[0].team_name;
+      seatCount = intent.rows[0].seat_count;
+      // Mark intent as used — idempotency guard
+      await dbQuery(`update team_purchase_intents set used = true where id = $1`, [intentId]);
+    }
+  }
+
+  seatCount = Math.max(5, seatCount || 5);
+
+  // ── Find the owner account ────────────────────────────────────────────────
+  let ownerId: string | null = accountId;
+
+  if (!ownerId && customerEmail) {
+    const account = await dbQuery<{ id: string }>(
+      `select id from individual_accounts where email = $1 limit 1`,
+      [customerEmail.toLowerCase()],
+    );
+    ownerId = account.rows[0]?.id ?? null;
+  }
+
+  if (!ownerId) {
+    console.warn('handleTeamPayment — could not resolve owner account. email:', customerEmail);
+    return;
+  }
+
+  // ── Upgrade account to team plan ──────────────────────────────────────────
+  await dbQuery(
+    `update individual_accounts set plan = 'team', updated_at = now() where id = $1`,
+    [ownerId],
   );
 
-  console.log(`✅ Pro activated for account_id=${accountId}`);
+  // ── Create team (idempotent — check if already created) ───────────────────
+  const existingTeam = await dbQuery<{ id: string }>(
+    `select id from teams where owner_id = $1 limit 1`,
+    [ownerId],
+  );
+
+  let teamId: string;
+  if (existingTeam.rows[0]) {
+    teamId = existingTeam.rows[0].id;
+    // Update seat count in case they bought more
+    await dbQuery(
+      `update teams set seat_count = $1, updated_at = now() where id = $2`,
+      [seatCount, teamId],
+    );
+    console.log(`Team already exists for owner ${ownerId}, updated seat count to ${seatCount}`);
+  } else {
+    const team = await createTeam({ name: teamName, ownerId, seatCount });
+    teamId = team.id;
+    console.log(`✅ Team created: ${teamId} (${teamName}, ${seatCount} seats) for owner ${ownerId}`);
+  }
+
+  // ── Generate invite token for team lead to share ───────────────────────────
+  await dbQuery(`
+    create table if not exists team_invite_tokens (
+      token text primary key,
+      team_id uuid not null references teams(id) on delete cascade,
+      created_by text not null,
+      created_at timestamptz not null default now(),
+      expires_at timestamptz not null default (now() + interval '30 days')
+    );
+  `);
+
+  const inviteToken = randomBytes(24).toString('hex');
+  await dbQuery(
+    `insert into team_invite_tokens (token, team_id, created_by)
+     values ($1, $2, $3)
+     on conflict (token) do nothing`,
+    [inviteToken, teamId, customerEmail ?? ownerId],
+  );
+
+  const siteUrl = process.env.SITE_URL ?? 'https://cxgrd.com';
+  console.log(`✅ Team invite link: ${siteUrl}/team/invite?team=${teamId}&token=${inviteToken}`);
+  // TODO: send invite link via email (Resend) to customerEmail
 }
 
 async function handleRefundSucceeded(data: any): Promise<void> {
   const accountId = extractAccountId(data);
   if (!accountId) { console.warn('refund.succeeded — no account_id'); return; }
-
   await dbQuery(
     `update individual_accounts set plan = 'free', updated_at = now() where id = $1`,
-    [accountId]
+    [accountId],
   );
   console.log(`Downgraded account_id=${accountId} to free after refund`);
 }
@@ -93,10 +203,9 @@ async function handleRefundSucceeded(data: any): Promise<void> {
 async function handleSubscriptionCancelled(data: any): Promise<void> {
   const accountId = extractAccountId(data);
   if (!accountId) { console.warn('subscription.cancelled — no account_id'); return; }
-
   await dbQuery(
     `update individual_accounts set plan = 'free', updated_at = now() where id = $1`,
-    [accountId]
+    [accountId],
   );
   console.log(`Downgraded account_id=${accountId} to free after cancellation`);
 }
@@ -119,18 +228,15 @@ export async function POST(request: NextRequest) {
   }
 
   const rawBody = await request.text();
-
-  const webhookId = request.headers.get('webhook-id') ?? '';
+  const webhookId        = request.headers.get('webhook-id') ?? '';
   const webhookTimestamp = request.headers.get('webhook-timestamp') ?? '';
   const webhookSignature = request.headers.get('webhook-signature') ?? '';
 
   if (!webhookId || !webhookTimestamp || !webhookSignature) {
-    console.error('Missing webhook headers', { webhookId: !!webhookId, webhookTimestamp: !!webhookTimestamp, webhookSignature: !!webhookSignature });
     return NextResponse.json({ error: 'Missing webhook headers' }, { status: 400 });
   }
 
-  const isValid = verifyDodoSignature(rawBody, webhookId, webhookTimestamp, webhookSignature, webhookSecret);
-  if (!isValid) {
+  if (!verifyDodoSignature(rawBody, webhookId, webhookTimestamp, webhookSignature, webhookSecret)) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 
@@ -145,23 +251,12 @@ export async function POST(request: NextRequest) {
 
   try {
     switch (event.type) {
-      case 'payment.succeeded':
-        await handlePaymentSucceeded(event.data);
-        break;
-      case 'refund.succeeded':
-        await handleRefundSucceeded(event.data);
-        break;
-      case 'subscription.cancelled':
-        await handleSubscriptionCancelled(event.data);
-        break;
-      case 'payment.failed':
-        await handlePaymentFailed(event.data);
-        break;
-      case 'abandoned_checkout.detected':
-        await handleAbandonedCheckout(event.data);
-        break;
-      default:
-        console.log(`Unhandled event: ${event.type}`);
+      case 'payment.succeeded':       await handlePaymentSucceeded(event.data);       break;
+      case 'refund.succeeded':        await handleRefundSucceeded(event.data);        break;
+      case 'subscription.cancelled':  await handleSubscriptionCancelled(event.data);  break;
+      case 'payment.failed':          await handlePaymentFailed(event.data);          break;
+      case 'abandoned_checkout.detected': await handleAbandonedCheckout(event.data); break;
+      default: console.log(`Unhandled event: ${event.type}`);
     }
   } catch (err) {
     console.error(`Error in handler for ${event.type}:`, err);

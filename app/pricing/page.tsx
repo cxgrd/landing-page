@@ -47,7 +47,7 @@ const pricingTiers = [
   {
     name: "Team",
     description: "For growing teams with shared governance",
-    price: "Per seat",
+    price: "$16/seat",
     period: "month",
     features: [
       "Everything in Pro, plus:",
@@ -58,7 +58,7 @@ const pricingTiers = [
       "Merge policy enforcement",
     ],
     cta: "Coming Soon",
-    ctaVariant: "secondary" as const,
+    ctaVariant: "primary" as const,
     highlight: false,
     action: "coming_soon",
   },
@@ -97,9 +97,12 @@ export default function PricingPage() {
 
     if (action === "pro") {
       setLoadingTier(tierName);
-      // Redirect to GitHub OAuth with upgrade intent
-      // After GitHub auth, callback redirects to Dodo checkout
       window.location.href = `/api/auth/github/start?intent=upgrade&plan=pro`;
+      return;
+    }
+
+    if (action === "team") {
+      window.location.href = "/team";
     }
   };
 

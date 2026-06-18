@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto';
 import { dbQuery } from './db';
 import { normalizePlan, type SubscriptionPlan } from './plans';
 import type { OrgRole } from './auth-token';
@@ -312,6 +313,31 @@ export async function ensureAuthSchema(): Promise<void> {
     `create index if not exists team_health_snapshots_trend_idx on team_health_snapshots (team_id, repo_id, created_at asc);`,
   );
 
+  await dbQuery(`
+    create table if not exists team_purchase_intents (
+      id uuid primary key,
+      team_name text not null,
+      seat_count int not null,
+      email text not null,
+      used boolean not null default false,
+      created_at timestamptz not null default now(),
+      expires_at timestamptz not null default (now() + interval '2 hours')
+    );
+  `);
+
+  await dbQuery(`
+    create table if not exists team_invite_tokens (
+      token text primary key,
+      team_id uuid not null references teams(id) on delete cascade,
+      created_by text not null,
+      created_at timestamptz not null default now(),
+      expires_at timestamptz not null default (now() + interval '30 days')
+    );
+  `);
+  await dbQuery(
+    `create index if not exists team_invite_tokens_team_idx on team_invite_tokens (team_id, expires_at desc);`,
+  );
+
   schemaEnsured = true;
 }
 
@@ -582,6 +608,114 @@ export async function getAccountTeam(accountId: string): Promise<{ team: Team; r
   );
   if (!result.rows[0]) return null;
   return { team: mapTeam(result.rows[0]), role: normalizeRole(result.rows[0].role) };
+}
+
+// ─── Invite tokens ────────────────────────────────────────────────────────────
+
+export interface InviteTokenInfo {
+  token: string;
+  teamId: string;
+  teamName: string;
+  seatCount: number;
+  memberCount: number;
+  seatsAvailable: number;
+  expiresAt: Date;
+}
+
+function buildInviteUrl(teamId: string, token: string): string {
+  const siteUrl = process.env.SITE_URL ?? 'https://cxgrd.com';
+  return `${siteUrl}/team/invite?team=${teamId}&token=${token}`;
+}
+
+export async function getInviteTokenInfo(token: string, teamId: string): Promise<InviteTokenInfo | null> {
+  const result = await dbQuery<{ team_id: string; expires_at: Date | string; name: string; seat_count: number }>(
+    `select tit.team_id, tit.expires_at, t.name, t.seat_count
+     from team_invite_tokens tit
+     join teams t on t.id = tit.team_id
+     where tit.token = $1 and tit.team_id = $2 and tit.expires_at > now()
+     limit 1`,
+    [token, teamId],
+  );
+  if (!result.rows[0]) return null;
+
+  const count = await dbQuery<{ count: string }>(
+    `select count(*) as count from team_members where team_id = $1 and status = 'active'`,
+    [teamId],
+  );
+  const memberCount = parseInt(count.rows[0]?.count ?? '0', 10);
+  const seatCount = result.rows[0].seat_count;
+  const expiresAt = result.rows[0].expires_at instanceof Date
+    ? result.rows[0].expires_at
+    : new Date(result.rows[0].expires_at);
+
+  return {
+    token,
+    teamId,
+    teamName: result.rows[0].name,
+    seatCount,
+    memberCount,
+    seatsAvailable: Math.max(0, seatCount - memberCount),
+    expiresAt,
+  };
+}
+
+export async function getTeamInviteLink(teamId: string): Promise<{ inviteUrl: string; token: string } | null> {
+  const existing = await dbQuery<{ token: string }>(
+    `select token from team_invite_tokens
+     where team_id = $1 and expires_at > now()
+     order by created_at desc limit 1`,
+    [teamId],
+  );
+  if (existing.rows[0]) {
+    const token = existing.rows[0].token;
+    return { token, inviteUrl: buildInviteUrl(teamId, token) };
+  }
+  return null;
+}
+
+export async function createTeamInviteToken(teamId: string, createdBy: string): Promise<{ inviteUrl: string; token: string }> {
+  const token = randomBytes(24).toString('hex');
+  await dbQuery(
+    `insert into team_invite_tokens (token, team_id, created_by) values ($1, $2, $3)`,
+    [token, teamId, createdBy],
+  );
+  return { token, inviteUrl: buildInviteUrl(teamId, token) };
+}
+
+export async function acceptTeamInvite(input: {
+  token: string;
+  teamId: string;
+  accountId: string;
+  email: string;
+}): Promise<TeamMember> {
+  const invite = await getInviteTokenInfo(input.token, input.teamId);
+  if (!invite) throw new Error('Invite link is invalid or expired');
+
+  const existingMember = await getTeamMember(input.teamId, input.accountId);
+  if (existingMember?.status === 'active') {
+    return existingMember;
+  }
+
+  const otherTeam = await getAccountTeam(input.accountId);
+  if (otherTeam && otherTeam.team.id !== input.teamId) {
+    throw new Error('You are already a member of another team');
+  }
+
+  if (invite.seatsAvailable <= 0) {
+    throw new Error('This team has no available seats');
+  }
+
+  await dbQuery(
+    `insert into team_members (team_id, account_id, role, invited_email, status, joined_at)
+     values ($1, $2, 'dev', $3, 'active', now())
+     on conflict (team_id, account_id) do update
+     set status = 'active', joined_at = coalesce(team_members.joined_at, now())`,
+    [input.teamId, input.accountId, input.email.toLowerCase()],
+  );
+
+  const member = await getTeamMember(input.teamId, input.accountId);
+  if (!member) throw new Error('Failed to join team');
+  return member;
 }
 
 // ─── Graph snapshots ──────────────────────────────────────────────────────────

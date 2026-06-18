@@ -8,6 +8,7 @@ import {
   markCliAuthSessionError,
   getAccountTeam,
   activateTeamMember,
+  acceptTeamInvite,
 } from '@/lib/auth-db';
 import { isDatabaseConfigured } from '@/lib/db';
 
@@ -50,13 +51,27 @@ export async function GET(request: NextRequest) {
     });
 
     // If this email has a pending team invite, activate it now
-    // This is how invited devs get linked to their team on first login
     await activateTeamMember({
       accountId: account.id,
       email: account.email,
-    }).catch(() => {
-      // Non-fatal — account may not have any pending invite
-    });
+    }).catch(() => {});
+
+    // Team invite link flow — join team after GitHub OAuth
+    if (state.intent === 'invite' && state.inviteToken && state.teamId) {
+      try {
+        await acceptTeamInvite({
+          token: state.inviteToken,
+          teamId: state.teamId,
+          accountId: account.id,
+          email: account.email,
+        });
+      } catch (inviteErr) {
+        const msg = inviteErr instanceof Error ? inviteErr.message : 'Invite failed';
+        return NextResponse.redirect(
+          new URL(`/team/invite?token=${state.inviteToken}&team=${state.teamId}&error=${encodeURIComponent(msg)}`, process.env.SITE_URL),
+        );
+      }
+    }
 
     // Look up team membership so we can embed it in the JWT
     const teamMembership = await getAccountTeam(account.id);
@@ -83,6 +98,12 @@ export async function GET(request: NextRequest) {
       });
       return NextResponse.redirect(
         new URL(`/auth/success?source=cli&plan=${account.plan}`, process.env.SITE_URL)
+      );
+    }
+
+    if (state.intent === 'invite' && teamMembership) {
+      return NextResponse.redirect(
+        new URL(`/auth/success?source=invite&plan=${account.plan}&team=${encodeURIComponent(teamMembership.team.name)}`, process.env.SITE_URL)
       );
     }
 

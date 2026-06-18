@@ -101,6 +101,158 @@ function Sparkline({ points, color = '#60a5fa' }: { points: number[]; color?: st
   );
 }
 
+function TrendChart({
+  title,
+  series,
+  height = 160,
+}: {
+  title: string;
+  series: { label: string; color: string; points: { x: string; y: number }[] }[];
+  height?: number;
+}) {
+  const width = 560;
+  const pad = { top: 16, right: 16, bottom: 28, left: 40 };
+  const innerW = width - pad.left - pad.right;
+  const innerH = height - pad.top - pad.bottom;
+
+  const allY = series.flatMap(s => s.points.map(p => p.y));
+  if (allY.length < 2) {
+    return (
+      <div style={{ background: 'rgba(10,16,30,0.7)', border: '1px solid rgba(148,163,184,0.12)', borderRadius: '10px', padding: '14px 16px' }}>
+        <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '.05em' }}>{title}</div>
+        <div style={{ color: '#475569', fontSize: '12px', padding: '2rem 0', textAlign: 'center' }}>Not enough data for trend chart</div>
+      </div>
+    );
+  }
+
+  const yMin = Math.min(...allY);
+  const yMax = Math.max(...allY, yMin + 1);
+  const yRange = yMax - yMin || 1;
+  const maxLen = Math.max(...series.map(s => s.points.length));
+
+  function xPos(i: number, len: number) {
+    return pad.left + (len <= 1 ? innerW / 2 : (i / (len - 1)) * innerW);
+  }
+  function yPos(v: number) {
+    return pad.top + innerH - ((v - yMin) / yRange) * innerH;
+  }
+
+  const yTicks = [yMin, yMin + yRange / 2, yMax];
+
+  return (
+    <div style={{ background: 'rgba(10,16,30,0.7)', border: '1px solid rgba(148,163,184,0.12)', borderRadius: '10px', padding: '14px 16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+        <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '.05em' }}>{title}</div>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          {series.map(s => (
+            <span key={s.label} style={{ fontSize: '10px', color: s.color, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ width: 8, height: 2, background: s.color, borderRadius: 1, display: 'inline-block' }} />
+              {s.label}
+            </span>
+          ))}
+        </div>
+      </div>
+      <svg width="100%" viewBox={`0 0 ${width} ${height}`} style={{ display: 'block', maxWidth: '100%' }}>
+        {yTicks.map((tick, i) => {
+          const y = yPos(tick);
+          return (
+            <g key={i}>
+              <line x1={pad.left} y1={y} x2={width - pad.right} y2={y} stroke="rgba(148,163,184,0.08)" strokeWidth="1" />
+              <text x={pad.left - 6} y={y + 3} textAnchor="end" fill="#475569" fontSize="9">{tick.toFixed(tick < 10 ? 1 : 0)}</text>
+            </g>
+          );
+        })}
+        {series.map(s => {
+          if (s.points.length < 2) return null;
+          const d = s.points.map((p, i) => `${i === 0 ? 'M' : 'L'}${xPos(i, s.points.length)},${yPos(p.y)}`).join(' ');
+          const last = s.points[s.points.length - 1];
+          return (
+            <g key={s.label}>
+              <path d={d} fill="none" stroke={s.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.9" />
+              <circle cx={xPos(s.points.length - 1, s.points.length)} cy={yPos(last.y)} r="3" fill={s.color} />
+            </g>
+          );
+        })}
+        {series[0]?.points.map((p, i) => {
+          if (i % Math.ceil(maxLen / 5) !== 0 && i !== maxLen - 1) return null;
+          const label = new Date(p.x).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+          return (
+            <text key={i} x={xPos(i, series[0].points.length)} y={height - 6} textAnchor="middle" fill="#475569" fontSize="9">{label}</text>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+function HotspotHeatmap({ hotspots }: { hotspots: string[] }) {
+  if (hotspots.length === 0) return null;
+
+  const cols = Math.min(4, Math.ceil(Math.sqrt(hotspots.length)));
+  const cellSize = 72;
+
+  function heatColor(index: number): string {
+    const t = 1 - index / Math.max(hotspots.length - 1, 1);
+    const r = Math.round(239 * t + 59 * (1 - t));
+    const g = Math.round(68 * t + 130 * (1 - t));
+    const b = Math.round(68 * t + 246 * (1 - t));
+    const alpha = 0.15 + (1 - index / hotspots.length) * 0.45;
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
+  function borderColor(index: number): string {
+    const t = 1 - index / Math.max(hotspots.length - 1, 1);
+    return `rgba(${Math.round(239 * t + 96 * (1 - t))},${Math.round(68 * t + 165 * (1 - t))},${Math.round(68 * t + 250 * (1 - t))},0.5)`;
+  }
+
+  return (
+    <div style={{ background: 'rgba(10,16,30,0.7)', border: '1px solid rgba(148,163,184,0.12)', borderRadius: '10px', padding: '12px 16px', marginBottom: '1.25rem' }}>
+      <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '10px' }}>
+        🔥 Hotspot heatmap
+        <span style={{ marginLeft: '8px', color: '#475569', textTransform: 'none', letterSpacing: 0 }}>— darker = higher blast radius risk</span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`, gap: '8px' }}>
+        {hotspots.map((file, i) => {
+          const name = file.split(/[/\\]/).pop() ?? file;
+          const dir = file.includes('/') || file.includes('\\')
+            ? file.replace(/[/\\][^/\\]+$/, '').split(/[/\\]/).slice(-2).join('/')
+            : '';
+          return (
+            <div
+              key={file}
+              title={file}
+              style={{
+                width: cellSize,
+                height: cellSize,
+                borderRadius: '8px',
+                background: heatColor(i),
+                border: `1px solid ${borderColor(i)}`,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '6px',
+                textAlign: 'center',
+                overflow: 'hidden',
+              }}
+            >
+              <span style={{ fontSize: '10px', fontWeight: 600, color: i < 3 ? '#fca5a5' : '#94a3b8', fontFamily: 'var(--font-geist-mono)', lineHeight: 1.2, wordBreak: 'break-all' }}>
+                {name}
+              </span>
+              {dir && (
+                <span style={{ fontSize: '8px', color: '#64748b', marginTop: '3px', fontFamily: 'var(--font-geist-mono)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>
+                  {dir}
+                </span>
+              )}
+              <span style={{ fontSize: '8px', color: '#475569', marginTop: '2px' }}>#{i + 1}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function StatCard({ label, value, sub, trend }: { label: string; value: string | number; sub?: string; trend?: number[] }) {
@@ -258,6 +410,14 @@ export default function DashboardPage() {
   const trendCoupling = trend.map(t => t.couplingScore);
   const trendFiles    = trend.map(t => t.fileCount);
 
+  const trendPoints = trend.map(t => ({
+    x: t.createdAt,
+    avgBlast: t.avgBlastRadius,
+    maxBlast: t.maxBlastRadius,
+    coupling: t.couplingScore,
+    files: t.fileCount,
+  }));
+
   const inputStyle = {
     width: '100%', background: 'rgba(15,23,42,0.8)',
     border: '1px solid rgba(148,163,184,0.18)', borderRadius: '6px',
@@ -330,7 +490,32 @@ export default function DashboardPage() {
             <StatCard label="Events"          value={entries.length} sub="last 100" />
           </div>
 
-          {/* Hotspots */}
+          {/* Trend charts */}
+          {trend.length >= 2 && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))', gap: '10px', marginBottom: '1.25rem' }}>
+              <TrendChart
+                title="Blast radius trend"
+                series={[
+                  { label: 'Avg blast', color: '#60a5fa', points: trendPoints.map(p => ({ x: p.x, y: p.avgBlast })) },
+                  { label: 'Max blast', color: '#f97316', points: trendPoints.map(p => ({ x: p.x, y: p.maxBlast })) },
+                ]}
+              />
+              <TrendChart
+                title="Architecture health trend"
+                series={[
+                  { label: 'Coupling', color: '#a78bfa', points: trendPoints.map(p => ({ x: p.x, y: p.coupling })) },
+                  { label: 'Files', color: '#22c55e', points: trendPoints.map(p => ({ x: p.x, y: p.files })) },
+                ]}
+              />
+            </div>
+          )}
+
+          {/* Hotspot heatmap */}
+          {health && health.hotspots.length > 0 && (
+            <HotspotHeatmap hotspots={health.hotspots} />
+          )}
+
+          {/* Hotspot tags (compact list) */}
           {health && health.hotspots.length > 0 && (
             <div style={{ background: 'rgba(10,16,30,0.7)', border: '1px solid rgba(148,163,184,0.12)', borderRadius: '10px', padding: '12px 16px', marginBottom: '1.25rem' }}>
               <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '10px' }}>🔥 Hotspot files</div>

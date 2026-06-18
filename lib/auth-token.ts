@@ -18,20 +18,18 @@ export interface CxgrdAuthTokenPayload {
 }
 
 export interface OAuthStatePayload {
-  intent: 'cli' | 'upgrade';
+  intent: 'cli' | 'upgrade' | 'invite';
   sessionId?: string;
   targetPlan?: SubscriptionPlan;
+  inviteToken?: string;
+  teamId?: string;
   nonce: string;
   iat: number;
   exp: number;
 }
 
 function getTokenSecret(): string {
-  return (
-    process.env.CXGRD_AUTH_TOKEN_SECRET ||
-    process.env.AUTH_TOKEN_SECRET ||
-    'cxgrd-dev-auth-secret-change-me'
-  );
+  return process.env.CXGRD_AUTH_TOKEN_SECRET || '';
 }
 
 function base64UrlEncode(value: Buffer | string): string {
@@ -128,17 +126,23 @@ export function verifyAuthToken(token: string): CxgrdAuthTokenPayload | null {
 }
 
 export function createOAuthState(
-  intent: 'cli' | 'upgrade',
-  sessionId?: string,
-  targetPlan?: SubscriptionPlan,
+  intent: 'cli' | 'upgrade' | 'invite',
+  opts?: {
+    sessionId?: string;
+    targetPlan?: SubscriptionPlan;
+    inviteToken?: string;
+    teamId?: string;
+  },
 ): string {
   const now = Math.floor(Date.now() / 1000);
   const normalizedTargetPlan =
-    intent === 'upgrade' ? normalizePlan(targetPlan || 'pro') : undefined;
+    intent === 'upgrade' ? normalizePlan(opts?.targetPlan || 'pro') : undefined;
   const payload: OAuthStatePayload = {
     intent,
-    sessionId,
+    sessionId: opts?.sessionId,
     targetPlan: normalizedTargetPlan,
+    inviteToken: opts?.inviteToken,
+    teamId: opts?.teamId,
     nonce: randomBytes(8).toString('hex'),
     iat: now,
     exp: now + 600,
@@ -151,7 +155,10 @@ export function verifyOAuthState(stateToken: string): OAuthStatePayload | null {
     const decoded = decodeAndVerify(stateToken);
     if (!decoded || isExpired(decoded.exp)) return null;
 
-    const intent = decoded.intent === 'cli' || decoded.intent === 'upgrade' ? decoded.intent : null;
+    const intent =
+      decoded.intent === 'cli' || decoded.intent === 'upgrade' || decoded.intent === 'invite'
+        ? decoded.intent
+        : null;
     if (!intent) return null;
 
     return {
@@ -161,6 +168,8 @@ export function verifyOAuthState(stateToken: string): OAuthStatePayload | null {
         typeof decoded.targetPlan === 'string'
           ? normalizePlan(decoded.targetPlan)
           : undefined,
+      inviteToken: typeof decoded.inviteToken === 'string' ? decoded.inviteToken : undefined,
+      teamId: typeof decoded.teamId === 'string' ? decoded.teamId : undefined,
       nonce: typeof decoded.nonce === 'string' ? decoded.nonce : '',
       iat: typeof decoded.iat === 'number' ? decoded.iat : 0,
       exp: typeof decoded.exp === 'number' ? decoded.exp : 0,
