@@ -36,8 +36,19 @@ function SuccessContent() {
         <p className="mt-4 text-sm text-slate-400">
           {source === "cli"
             ? "Your CLI is now authenticated. Return to your terminal — it will pick up automatically."
+            : source === "invite"
+            ? `You've joined ${searchParams.get("team") ?? "your team"}. Run cxgrd scan --team to sync your repo.`
             : `Your ${planLabel} plan is active.`}
         </p>
+
+        {source === "invite" && (
+          <a
+            href="/dashboard"
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-violet-500 px-6 py-3 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+          >
+            Open team dashboard →
+          </a>
+        )}
 
         {source === "cli" && (
           <div className="mt-8 rounded-xl border border-blue-500/20 bg-blue-500/10 p-4 text-left">
