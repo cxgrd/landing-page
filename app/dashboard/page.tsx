@@ -1,5 +1,7 @@
 'use client';
 
+// TODO : add section for managing merge policies
+
 import { useEffect, useState, useCallback, useRef } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/lib/supabase-client';

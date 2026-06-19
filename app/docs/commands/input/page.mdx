@@ -8,7 +8,8 @@ Analyze the blast radius of a planned change.
 cxgrd input "description of the change"
 ```
  
-Before touching any code, describe what you're planning to change. CXGRD will tell you every file that will be affected, why it's affected, and how severe the impact is.
+Before touching any code, describe what you're planning to change. CXGRD will tell you every file that will be affected, why it's affected, 
+and how severe the impact is.
  
 ## Example output
 
@@ -77,5 +78,17 @@ PS C:\Users\name\project1> cxgrd input "removing oauth.py"
 ```
  
 
-Use this before making any significant refactor or before handing a task off to an AI assistant.
+> Use this before making any significant refactor or before handing a task off to an AI assistant.
  
+AI agents and tools work best when they are given clear and specific instructions instead of generalized or vague instructions. For example,
+giving a command like this one:
+
+```bash
+cxgrd input " refactor the function ResolveConflict in file index.js to properly handle edge cases "
+```
+
+has high chances of producing more accurate output than this one:
+
+```bash
+cxgrd input " fix error in index.js "
+```

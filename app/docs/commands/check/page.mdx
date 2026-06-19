@@ -26,3 +26,62 @@ PS C:\Users\name\project1> cxgrd check .
 ✓ All checks passed!
    Scope: full project · Mode: permissive · 0 errors (0 structural, 0 compiler) · 0 warnings
 ```
+
+## Options
+
+`--staged` : Only checks git staged files
+
+`--changed` : Only checks staged and unstaged changed files
+
+`--skip-compiler` : Skip compiler-backed verification
+
+`--skip-structural` : Skip structural graph checks
+
+`--strict` : Conduct strict checks on all files. Fail if a detected language compiler was skipped
+
+`--ci` : CI mode: post result to server for GitHub PR status (Team plan). 
+
+The `--ci` option requires some efforts. It is a GitHub Actions workflow step, so you need to configure CI pipeline with a yaml file:
+
+```bash
+name: cxgrd check
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  architecture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install cxgrd
+        run: npm install -g cxgrd
+
+      - name: Scan project
+        run: cxgrd scan
+
+      - name: cxgrd architecture check
+        run: cxgrd check --ci --strict
+        env:
+          CXGRD_AUTH_TOKEN: ${{ secrets.CXGRD_TOKEN }}
+```
+
+CXGRD_AUTH_TOKEN is the team member's cxgrd JWT stored as a GitHub Actions secret. The dev adds it once under repo settings → Secrets → Actions.
+
+So when a PR is opened,
+```
+GitHub Actions picks it up
+  → installs cxgrd
+    → scans the repo (builds .cg/ graph)
+      → runs check --ci --strict
+        → posts result to /api/teams/:id/ci-check
+          → server updates GitHub commit status (✓ or ✗ on the PR)
+```
+
+> Upgrade to at https://cxgrd.com/pricing

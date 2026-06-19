@@ -8,9 +8,6 @@ cxgrd init-hooks --threshold 80 --block-critical
 cxgrd init-hooks --uninstall
 ```
 
-The `--threshold` flag is used to block commits which exceed a certain danger level. 
-The `--block-critical` will block commits which include changes flagged as High risk or critical.
-
 ## Example Usage
 
 ```bash
@@ -41,3 +38,14 @@ PS C:\Users\name\project1> cxgrd init-hooks
    4. The hook will run automatically
 ```
 
+## Options
+
+`--threshold` : block commits which exceed a certain danger level. 
+
+`--block-critical` : block commits which include changes flagged as High risk or critical.
+
+`--block-high` : block commits which are flagged as high risk
+
+`--warn-medium` : show warnings for medium risk commits
+
+`--uninstall` : uninstall hooks

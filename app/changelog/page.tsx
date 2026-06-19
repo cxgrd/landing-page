@@ -4,10 +4,20 @@ import { Footer } from "@/components/Footer";
 
 const releases = [
   {
-    version: "v0.1.22",
-    date: "June 16, 2026",
+    version: "v0.1.23",
+    date: "June 19, 2026",
     badge: "latest",
     badgeColor: "emerald",
+    changes: [
+      { type: "improved", text: "config command now provides clearer feedback and options" },
+      { type: "improved", text: "Documentation updated with clearer examples and explanations" },
+    ],
+  },
+  {
+    version: "v0.1.22",
+    date: "June 17, 2026",
+    badge: null,
+    badgeColor: null,
     changes: [
       { type: "new", text: "--ci flag for check command" },
       { type: "new", text: "github webhook, ci-check and merge policies routes implemented" },
