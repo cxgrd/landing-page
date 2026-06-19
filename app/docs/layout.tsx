@@ -20,6 +20,7 @@ const nav = [
       { title: 'doctor', href: '/docs/commands/doctor' },
       { title: 'init-hooks', href: '/docs/commands/init-hooks' },
       { title: 'watch', href: '/docs/commands/watch' },
+      { title: 'config', href: '/docs/commands/config' },
     ],
   },
 ]
