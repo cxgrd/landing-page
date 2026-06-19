@@ -12,7 +12,7 @@ import {
 function extractToken(request: NextRequest): string | null {
   const authHeader = request.headers.get('authorization');
   if (authHeader?.startsWith('Bearer ')) return authHeader.slice(7);
-  return request.headers.get('x-cxgrd-token');
+  return null;
 }
 
 // GET /api/teams/[teamId]/invite?token=xxx — validate invite token (public)

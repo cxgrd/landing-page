@@ -11,7 +11,7 @@ import {
 function extractToken(req: NextRequest): string | null {
   const auth = req.headers.get('authorization');
   if (auth?.startsWith('Bearer ')) return auth.slice(7);
-  return req.headers.get('x-cxgrd-token');
+  return null;
 }
 
 // POST /api/teams/[teamId]/health — CLI posts after a successful --team scan

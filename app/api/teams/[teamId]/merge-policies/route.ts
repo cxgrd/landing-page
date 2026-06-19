@@ -10,7 +10,7 @@ import {
 function extractToken(req: NextRequest): string | null {
   const auth = req.headers.get('authorization');
   if (auth?.startsWith('Bearer ')) return auth.slice(7);
-  return req.headers.get('x-cxgrd-token');
+  return null;
 }
 
 // GET /api/teams/[teamId]/merge-policies

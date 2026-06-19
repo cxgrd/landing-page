@@ -6,7 +6,7 @@ import type { OrgRole } from '@/lib/auth-token';
 function extractToken(req: NextRequest): string | null {
   const auth = req.headers.get('authorization');
   if (auth?.startsWith('Bearer ')) return auth.slice(7);
-  return req.headers.get('x-cxgrd-token');
+  return null;
 }
 
 // POST /api/teams/[teamId]/audit — CLI posts an event after each command

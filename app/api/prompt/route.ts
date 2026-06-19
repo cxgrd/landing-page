@@ -8,10 +8,6 @@ function extractToken(request: NextRequest): string | null {
   if (authHeader?.startsWith("Bearer ")) {
     return authHeader.slice(7);
   }
-  // Fallback: custom header (used when proxy strips Authorization)
-  const customHeader = request.headers.get("x-cxgrd-token");
-  if (customHeader) return customHeader;
-
   return null;
 }
 

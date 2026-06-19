@@ -315,7 +315,7 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const h = { 'x-cxgrd-token': t };
+      const h = { 'Authorization': `Bearer ${t}` };
       const [auditRes, healthRes, trendRes] = await Promise.all([
         fetch(`/api/teams/${tid}/audit?limit=100`, { headers: h }),
         fetch(`/api/teams/${tid}/health?repoId=${encodeURIComponent(rid)}&mode=latest`, { headers: h }),

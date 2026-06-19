@@ -6,7 +6,7 @@ import { ensureAuthSchema, getTeamMember, getTeamById } from '@/lib/auth-db';
 function extractToken(request: NextRequest): string | null {
   const authHeader = request.headers.get('authorization');
   if (authHeader?.startsWith('Bearer ')) return authHeader.slice(7);
-  return request.headers.get('x-cxgrd-token');
+  return null;
 }
 
 // Default blast radius thresholds per role (team owner can override via policies — phase 2)
