@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
       }),
     });
 
-    // ── CLI login flow ────────────────────────────────────────────────────────
+    // ── CLI login flow ──────────────────────────────────────────────────────────
     if (state.intent === 'cli' && state.sessionId) {
       await markCliAuthSessionAuthorized({
         sessionId: state.sessionId,
@@ -94,7 +94,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // ── Web upgrade flow ──────────────────────────────────────────────────────
+    // ── Team upgrade flow — auth first, then redirect to /team form ─────────────
+    if (state.intent === 'upgrade' && state.targetPlan === 'team') {
+      const res = NextResponse.redirect(new URL('/team', process.env.SITE_URL));
+      setAuthCookie(res, token);  // cookie set → /api/auth/me will return accountId
+      return res;
+    }
+
+    // ── Pro upgrade flow ────────────────────────────────────────────────────────
     if (state.intent === 'upgrade' && state.targetPlan === 'pro') {
       const checkoutUrl =
         `https://checkout.dodopayments.com/buy/pdt_0Ng6EAXoE8ybCQmeyWYtB` +
@@ -105,13 +112,7 @@ export async function GET(request: NextRequest) {
       return res;
     }
 
-    if (state.intent === 'upgrade' && state.targetPlan === 'team') {
-      const res = NextResponse.redirect(new URL('/team', process.env.SITE_URL));
-      setAuthCookie(res, token);
-      return res;
-    }
-
-    // ── Web login / dashboard flow ────────────────────────────────────────────
+    // ── Web login / dashboard flow ──────────────────────────────────────────────
     const redirectUrl = teamMembership
       ? new URL(`/dashboard`, process.env.SITE_URL)
       : new URL(`/auth/success?plan=${account.plan}`, process.env.SITE_URL);
