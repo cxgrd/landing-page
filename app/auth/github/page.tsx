@@ -52,12 +52,7 @@ export default function GitHubAuthPage() {
         </div>
       </main>
 
-      <footer className="mt-16 border-t border-white/10 bg-[#05070f]/70 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-2 px-6 py-8 text-center text-xs text-slate-400 sm:flex-row sm:text-left">
-          <p className="text-sm">cxgrd — AI context guardrails for AI-native development.</p>
-          <p>© 2026 · Early access in progress.</p>
-        </div>
-      </footer>
+      
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/lib/supabase-client';
+import { Footer } from '@/components/Footer';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -763,6 +764,8 @@ export default function DashboardPage() {
           </div>
         </>
       )}
+
+      <Footer />
     </div>
   );
 }
