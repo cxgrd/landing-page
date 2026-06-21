@@ -105,6 +105,12 @@ export async function GET(request: NextRequest) {
       return res;
     }
 
+    if (state.intent === 'upgrade' && state.targetPlan === 'team') {
+      const res = NextResponse.redirect(new URL('/team', process.env.SITE_URL));
+      setAuthCookie(res, token);
+      return res;
+    }
+
     // ── Web login / dashboard flow ────────────────────────────────────────────
     const redirectUrl = teamMembership
       ? new URL(`/dashboard`, process.env.SITE_URL)

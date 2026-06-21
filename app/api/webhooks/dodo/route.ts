@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { dbQuery } from '@/lib/db';
 import { createHmac, randomBytes } from 'crypto';
 import { ensureAuthSchema, createTeam } from '@/lib/auth-db';
+import { Resend } from 'resend';
 
 const DODO_TEAM_PRODUCT_ID = process.env.DODO_CXGRD_TEAM_KEY ?? '';
+const resend = new Resend(process.env.RESEND_API_KEY);
+const SITE_URL = process.env.SITE_URL ?? 'https://cxgrd.com';
 
 // ─── Signature verification ───────────────────────────────────────────────────
 
@@ -45,7 +48,51 @@ function extractProductId(data: any): string | null {
   return data?.product_id ?? data?.items?.[0]?.product_id ?? null;
 }
 
-// ─── Handlers ────────────────────────────────────────────────────────────────
+// ─── Email helper ─────────────────────────────────────────────────────────────
+
+async function sendInviteEmail({
+  toEmail,
+  teamName,
+  teamId,
+  inviteToken,
+}: {
+  toEmail: string;
+  teamName: string;
+  teamId: string;
+  inviteToken: string;
+}): Promise<void> {
+  const inviteLink = `${SITE_URL}/team/invite?team=${teamId}&token=${inviteToken}`;
+
+  await resend.emails.send({
+    from: 'cxgrd <hello@cxgrd.com>',
+    to: toEmail,
+    subject: `Your ${teamName} team is ready on cxgrd`,
+    html: `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#0f172a">
+        <h2 style="margin-bottom:8px">Your team is live 🎉</h2>
+        <p style="color:#475569">
+          <strong>${teamName}</strong> has been set up on cxgrd.
+          Share the link below with your teammates so they can join:
+        </p>
+        <a href="${inviteLink}"
+           style="display:inline-block;margin:16px 0;padding:12px 24px;
+                  background:#6366f1;color:#fff;border-radius:8px;
+                  text-decoration:none;font-weight:600">
+          Join ${teamName} on cxgrd →
+        </a>
+        <p style="font-size:13px;color:#94a3b8">
+          Link expires in 30 days. Contact team owner for a new invite if needed.
+        </p>
+        <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0"/>
+        <p style="font-size:12px;color:#94a3b8">cxgrd · AI Context Guardrail</p>
+      </div>
+    `,
+  });
+
+  console.log(`✅ Invite email sent to ${toEmail} — link: ${inviteLink}`);
+}
+
+// ─── Handlers ─────────────────────────────────────────────────────────────────
 
 async function handlePaymentSucceeded(data: any): Promise<void> {
   const productId  = extractProductId(data);
@@ -53,13 +100,13 @@ async function handlePaymentSucceeded(data: any): Promise<void> {
   const intentId   = extractIntentId(data);
   const customerEmail = data?.customer?.email as string | undefined;
 
-  // ── Team plan payment ────────────────────────────────────────────────────
+  // ── Team plan payment ────────────────────────────────────────────────────────
   if (productId === DODO_TEAM_PRODUCT_ID) {
     await handleTeamPayment({ intentId, accountId, customerEmail, data });
     return;
   }
 
-  // ── Pro plan payment (existing logic) ────────────────────────────────────
+  // ── Pro plan payment (existing logic) ────────────────────────────────────────
   if (!accountId) {
     console.warn('payment.succeeded — no account_id in metadata. customer:', JSON.stringify(data?.customer));
     return;
@@ -91,40 +138,50 @@ async function handleTeamPayment(input: {
 
   await ensureAuthSchema();
 
-  // Ensure intent table exists
+  // Ensure intent table exists (with account_id column)
   await dbQuery(`
     create table if not exists team_purchase_intents (
       id uuid primary key,
       team_name text not null,
       seat_count int not null,
       email text not null,
+      account_id text,
       used boolean not null default false,
       created_at timestamptz not null default now(),
       expires_at timestamptz not null default (now() + interval '2 hours')
     );
   `);
 
-  // ── Resolve team name + seat count ────────────────────────────────────────
+  // ── Resolve team name, seat count, and account_id from intent ────────────────
   let teamName  = (data?.metadata?.team_name as string | undefined) ?? 'My Team';
   let seatCount = parseInt(data?.metadata?.seat_count ?? data?.quantity ?? '5', 10);
+  let resolvedAccountId = accountId; // prefer metadata[account_id] from checkout
 
   if (intentId) {
-    const intent = await dbQuery<{ team_name: string; seat_count: number; email: string; used: boolean }>(
-      `select team_name, seat_count, email, used from team_purchase_intents where id = $1`,
+    const intent = await dbQuery<{
+      team_name: string;
+      seat_count: number;
+      email: string;
+      used: boolean;
+      account_id: string | null;
+    }>(
+      `select team_name, seat_count, email, used, account_id
+       from team_purchase_intents where id = $1`,
       [intentId],
     );
     if (intent.rows[0] && !intent.rows[0].used) {
       teamName  = intent.rows[0].team_name;
       seatCount = intent.rows[0].seat_count;
-      // Mark intent as used — idempotency guard
+      // Use account_id from intent if not already in checkout metadata
+      resolvedAccountId ??= intent.rows[0].account_id;
       await dbQuery(`update team_purchase_intents set used = true where id = $1`, [intentId]);
     }
   }
 
   seatCount = Math.max(5, seatCount || 5);
 
-  // ── Find the owner account ────────────────────────────────────────────────
-  let ownerId: string | null = accountId;
+  // ── Find the owner account ────────────────────────────────────────────────────
+  let ownerId: string | null = resolvedAccountId;
 
   if (!ownerId && customerEmail) {
     const account = await dbQuery<{ id: string }>(
@@ -139,13 +196,13 @@ async function handleTeamPayment(input: {
     return;
   }
 
-  // ── Upgrade account to team plan ──────────────────────────────────────────
+  // ── Upgrade account to team plan ─────────────────────────────────────────────
   await dbQuery(
     `update individual_accounts set plan = 'team', updated_at = now() where id = $1`,
     [ownerId],
   );
 
-  // ── Create team (idempotent — check if already created) ───────────────────
+  // ── Create team (idempotent) ──────────────────────────────────────────────────
   const existingTeam = await dbQuery<{ id: string }>(
     `select id from teams where owner_id = $1 limit 1`,
     [ownerId],
@@ -154,7 +211,6 @@ async function handleTeamPayment(input: {
   let teamId: string;
   if (existingTeam.rows[0]) {
     teamId = existingTeam.rows[0].id;
-    // Update seat count in case they bought more
     await dbQuery(
       `update teams set seat_count = $1, updated_at = now() where id = $2`,
       [seatCount, teamId],
@@ -166,7 +222,7 @@ async function handleTeamPayment(input: {
     console.log(`✅ Team created: ${teamId} (${teamName}, ${seatCount} seats) for owner ${ownerId}`);
   }
 
-  // ── Generate invite token for team lead to share ───────────────────────────
+  // ── Generate invite token ─────────────────────────────────────────────────────
   await dbQuery(`
     create table if not exists team_invite_tokens (
       token text primary key,
@@ -185,9 +241,17 @@ async function handleTeamPayment(input: {
     [inviteToken, teamId, customerEmail ?? ownerId],
   );
 
-  const siteUrl = process.env.SITE_URL ?? 'https://cxgrd.com';
-  console.log(`✅ Team invite link: ${siteUrl}/team/invite?team=${teamId}&token=${inviteToken}`);
-  // TODO: send invite link via email (Resend) to customerEmail
+  // ── Send invite email to the owner ───────────────────────────────────────────
+  if (customerEmail) {
+    await sendInviteEmail({
+      toEmail: customerEmail,
+      teamName,
+      teamId,
+      inviteToken,
+    }).catch(err => console.error('Failed to send invite email:', err));
+  } else {
+    console.warn('No customer email — skipping invite email for team:', teamId);
+  }
 }
 
 async function handleRefundSucceeded(data: any): Promise<void> {
@@ -251,11 +315,11 @@ export async function POST(request: NextRequest) {
 
   try {
     switch (event.type) {
-      case 'payment.succeeded':       await handlePaymentSucceeded(event.data);       break;
-      case 'refund.succeeded':        await handleRefundSucceeded(event.data);        break;
-      case 'subscription.cancelled':  await handleSubscriptionCancelled(event.data);  break;
-      case 'payment.failed':          await handlePaymentFailed(event.data);          break;
-      case 'abandoned_checkout.detected': await handleAbandonedCheckout(event.data); break;
+      case 'payment.succeeded':           await handlePaymentSucceeded(event.data);       break;
+      case 'refund.succeeded':            await handleRefundSucceeded(event.data);        break;
+      case 'subscription.cancelled':      await handleSubscriptionCancelled(event.data);  break;
+      case 'payment.failed':              await handlePaymentFailed(event.data);          break;
+      case 'abandoned_checkout.detected': await handleAbandonedCheckout(event.data);      break;
       default: console.log(`Unhandled event: ${event.type}`);
     }
   } catch (err) {

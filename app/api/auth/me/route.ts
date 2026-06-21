@@ -22,7 +22,8 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     authenticated: true,
-    token,   // returned so dashboard can use it for subsequent API calls
+    token,
+    accountId: claims.sub,   // ← add this
     email:   claims.email,
     plan:    claims.plan,
     teamId:  claims.team_id   ?? null,

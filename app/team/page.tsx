@@ -26,10 +26,15 @@ export default function TeamPage() {
 
     try {
       // Store team intent in session so webhook can pick it up
+
+      const accountId = await fetch('/api/auth/me', { method: 'GET' })
+        .then(r => r.json())
+        .then(data => data?.accountId);
+
       const res = await fetch('/api/teams/intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teamName: teamName.trim(), seatCount, email: email.trim() }),
+        body: JSON.stringify({ teamName: teamName.trim(), seatCount, email: email.trim(), accountId }),
       });
 
       if (!res.ok) throw new Error('Failed to prepare checkout');
@@ -43,6 +48,7 @@ export default function TeamPage() {
         'metadata[seat_count]':String(seatCount),
         'metadata[team_name]': teamName.trim(),
       });
+      params.append('metadata[account_id]', accountId);
 
       const checkoutUrl = `https://checkout.dodopayments.com/buy/${TEAM_PRODUCT_ID}?${params}`;
       window.location.href = checkoutUrl;

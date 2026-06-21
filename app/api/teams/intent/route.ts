@@ -11,23 +11,31 @@ export async function POST(request: NextRequest) {
   try {
     await ensureAuthSchema();
 
-    // Ensure the intent table exists
+    // Ensure the intent table exists (with account_id column)
     await dbQuery(`
       create table if not exists team_purchase_intents (
         id uuid primary key,
         team_name text not null,
         seat_count int not null,
         email text not null,
+        account_id text,
         used boolean not null default false,
         created_at timestamptz not null default now(),
         expires_at timestamptz not null default (now() + interval '2 hours')
       );
     `);
 
+    // Migrate existing table — add account_id column if it doesn't exist yet
+    await dbQuery(`
+      alter table team_purchase_intents
+      add column if not exists account_id text;
+    `).catch(() => {});
+
     const body = await request.json() as {
       teamName?: string;
       seatCount?: number;
       email?: string;
+      accountId?: string;
     };
 
     if (!body.teamName?.trim()) {
@@ -43,8 +51,9 @@ export async function POST(request: NextRequest) {
 
     const intentId = randomUUID();
     await dbQuery(
-      `insert into team_purchase_intents (id, team_name, seat_count, email) values ($1, $2, $3, $4)`,
-      [intentId, body.teamName.trim(), seatCount, body.email.trim().toLowerCase()],
+      `insert into team_purchase_intents (id, team_name, seat_count, email, account_id)
+       values ($1, $2, $3, $4, $5)`,
+      [intentId, body.teamName.trim(), seatCount, body.email.trim().toLowerCase(), body.accountId ?? null],
     );
 
     return NextResponse.json({ intentId }, { status: 201 });

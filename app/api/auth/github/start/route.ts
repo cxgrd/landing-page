@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     const state = createOAuthState(intent, {
       sessionId,
-      targetPlan: plan as 'pro' | undefined,
+      targetPlan: plan as 'pro' | 'team' | undefined,
       inviteToken,
       teamId,
     });
