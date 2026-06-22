@@ -26,7 +26,6 @@ const footerLinks = {
   ],
   Company: [
     { label: "About", href: "/about" },
-    { label: "Blog", href: "/blog" },
     { label: "Contact", href: "mailto:hello@cxgrd.com", external: true },
   ],
 };
@@ -90,11 +89,14 @@ export function Footer() {
             © {new Date().getFullYear()} cxgrd. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <Link href="/privacy" className="text-xs text-slate-600 hover:text-slate-400 transition-colors">
+            <Link href="/legal/privacy" className="text-xs text-slate-600 hover:text-slate-400 transition-colors">
               Privacy
             </Link>
-            <Link href="/terms" className="text-xs text-slate-600 hover:text-slate-400 transition-colors">
+            <Link href="/legal/terms" className="text-xs text-slate-600 hover:text-slate-400 transition-colors">
               Terms
+            </Link>
+            <Link href="/legal/refund" className="text-xs text-slate-600 hover:text-slate-400 transition-colors">
+              Refund Policy
             </Link>
           </div>
         </div>

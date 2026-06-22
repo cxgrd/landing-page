@@ -17,16 +17,56 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Override Termly privacy policy colors for dark background */
+[data-custom-class='link'],
+[data-custom-class='link'] * {
+  color: #ffffff !important;
+}
+
+[data-custom-class='heading_1'],
+[data-custom-class='heading_1'] * {
+  color: #ffffff !important;
+}
+
+[data-custom-class='heading_2'],
+[data-custom-class='heading_2'] * {
+  color: #ffffff !important;
+}
+
+[data-custom-class='body_text'],
+[data-custom-class='body_text'] * {
+  color: #e2e8f0 !important;
+}
+
+[data-custom-class='title'],
+[data-custom-class='title'] * {
+  color: #ffffff !important;
+}
+
+[data-custom-class='subtitle'],
+[data-custom-class='subtitle'] * {
+  color: #94a3b8 !important;
+}
+
+[data-custom-class='body_text'] {
+  display: block;
+}
+
 body {
   min-height: 100%;
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), "Segoe UI", Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-mono), "Segoe UI", Arial, Helvetica, sans-serif;
   background:
     radial-gradient(58rem 36rem at -5% -10%, rgba(56, 189, 248, 0.13), transparent 60%),
     radial-gradient(48rem 34rem at 105% 2%, rgba(139, 92, 246, 0.16), transparent 60%),
     radial-gradient(36rem 26rem at 50% 110%, rgba(59, 130, 246, 0.12), transparent 70%),
     var(--background);
+}
+
+html, body {
+  background-color: #05070f;
+  min-height: 100%;
 }
 
 ::selection {

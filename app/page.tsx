@@ -151,6 +151,7 @@ export default function Home() {
 
           <h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight text-white sm:text-6xl">
             Move fast with AI{" "}
+            <br></br>
             <span className="animated-gradient-text bg-gradient-to-r from-blue-300 via-violet-300 to-cyan-300 bg-clip-text text-transparent">
               without silently breaking your architecture
             </span>
