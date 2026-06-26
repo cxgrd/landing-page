@@ -6,6 +6,7 @@ import type { OrgRole } from './auth-token';
 interface AccountRow {
   id: string;
   github_id: string;
+  dodo_customer_id: string;
   github_login: string;
   email: string;
   plan: string;
@@ -26,6 +27,7 @@ interface TeamRow {
   name: string;
   slug: string;
   owner_id: string;
+  dodo_customer_id: string;
   seat_count: number;
   created_at: Date | string;
 }
@@ -85,6 +87,7 @@ interface HealthSnapshotRow {
 export interface IndividualAccount {
   id: string;
   githubId: string;
+  dodoCustomerId : string;
   githubLogin: string;
   email: string;
   plan: SubscriptionPlan;
@@ -102,6 +105,7 @@ export interface CliAuthSession {
 
 export interface Team {
   id: string;
+  dodoCustomerId : string;
   name: string;
   slug: string;
   ownerId: string;
@@ -179,6 +183,7 @@ export async function ensureAuthSchema(): Promise<void> {
       id uuid primary key default gen_random_uuid(),
       github_id text unique not null,
       github_login text not null,
+      dodo_customer_id text not null,
       email text unique not null,
       plan text not null default 'free' check (plan in ('free', 'pro', 'team')),
       created_at timestamptz not null default now(),
@@ -209,8 +214,9 @@ export async function ensureAuthSchema(): Promise<void> {
     create table if not exists teams (
       id uuid primary key default gen_random_uuid(),
       name text not null,
-      slug text unique not null,
+      slug text unique not null,s
       owner_id uuid not null references individual_accounts(id) on delete restrict,
+      dodo_customer_id text not null,
       seat_count int not null default 5 check (seat_count >= 5),
       created_at timestamptz not null default now(),
       updated_at timestamptz not null default now()
@@ -348,6 +354,7 @@ function mapAccount(row: AccountRow): IndividualAccount {
     id: row.id,
     githubId: row.github_id,
     githubLogin: row.github_login,
+    dodoCustomerId : row.dodo_customer_id,
     email: row.email,
     plan: normalizePlan(row.plan),
   };
@@ -377,6 +384,7 @@ function mapTeam(row: TeamRow): Team {
     name: row.name,
     slug: row.slug,
     ownerId: row.owner_id,
+    dodoCustomerId: row.dodo_customer_id,
     seatCount: row.seat_count,
     createdAt: row.created_at instanceof Date ? row.created_at : new Date(row.created_at),
   };

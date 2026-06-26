@@ -36,7 +36,7 @@ function verifyDodoSignature(
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function extractAccountId(data: any): string | null {
+export function extractAccountId(data: any): string | null {
   return data?.customer?.metadata?.account_id ?? data?.metadata?.account_id ?? null;
 }
 
@@ -46,6 +46,10 @@ function extractIntentId(data: any): string | null {
 
 function extractProductId(data: any): string | null {
   return data?.product_id ?? data?.items?.[0]?.product_id ?? null;
+}
+
+export function extractCustomerId(data: any): string | null {
+  return data?.customer?.id ?? null;
 }
 
 // ─── Email helper ─────────────────────────────────────────────────────────────
@@ -125,6 +129,14 @@ async function handlePaymentSucceeded(data: any): Promise<void> {
     `update individual_accounts set plan = 'pro', updated_at = now() where id = $1`,
     [accountId],
   );
+
+  const customerId = extractCustomerId(data);
+  if (customerId) {
+    await dbQuery(
+      `update individual_accounts set dodo_customer_id = $1 where id = $2`,
+      [customerId, accountId],
+    );
+  }
   console.log(`✅ Pro activated for account_id=${accountId}`);
 }
 
@@ -201,6 +213,14 @@ async function handleTeamPayment(input: {
     `update individual_accounts set plan = 'team', updated_at = now() where id = $1`,
     [ownerId],
   );
+
+  const customerId = extractCustomerId(data);
+  if (customerId) {
+    await dbQuery(
+      `update individual_accounts set dodo_customer_id = $1 where id = $2`,
+      [customerId, ownerId],
+    );
+  }
 
   // ── Create team (idempotent) ──────────────────────────────────────────────────
   const existingTeam = await dbQuery<{ id: string }>(

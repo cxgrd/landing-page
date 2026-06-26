@@ -11,6 +11,7 @@ const releases = [
     changes: [
       { type: "improved", text: "config command now provides clearer feedback and options" },
       { type: "improved", text: "Documentation updated with clearer examples and explanations" },
+      { type: "new", text: "added manage subscription page "}
     ],
   },
   {
