@@ -23,11 +23,12 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     authenticated: true,
     token,
-    accountId: claims.sub,   // ← add this
+    accountId: claims.sub,
     email:   claims.email,
     plan:    claims.plan,
     teamId:  claims.team_id   ?? null,
     role:    claims.team_role ?? null,
+    githubLogin: claims.github_login ?? null,
   });
 }
 
