@@ -36,7 +36,7 @@ function verifyDodoSignature(
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-export function extractAccountId(data: any): string | null {
+function extractAccountId(data: any): string | null {
   return data?.customer?.metadata?.account_id ?? data?.metadata?.account_id ?? null;
 }
 
@@ -48,7 +48,7 @@ function extractProductId(data: any): string | null {
   return data?.product_id ?? data?.items?.[0]?.product_id ?? null;
 }
 
-export function extractCustomerId(data: any): string | null {
+function extractCustomerId(data: any): string | null {
   return data?.customer?.id ?? null;
 }
 
