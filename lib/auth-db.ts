@@ -214,7 +214,7 @@ export async function ensureAuthSchema(): Promise<void> {
     create table if not exists teams (
       id uuid primary key default gen_random_uuid(),
       name text not null,
-      slug text unique not null,s
+      slug text unique not null,
       owner_id uuid not null references individual_accounts(id) on delete restrict,
       dodo_customer_id text not null,
       seat_count int not null default 5 check (seat_count >= 5),
