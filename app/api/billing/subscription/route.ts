@@ -19,17 +19,38 @@ export async function GET(request: Request) {
   const customerId = rows[0]?.dodo_customer_id;
   if (!customerId) return NextResponse.json({ error: 'No subscription found' }, { status: 404 });
 
-  const res = await fetch(`https://live.dodopayments.com/customers/${customerId}`, {
+  const res = await fetch(`https://live.dodopayments.com/subscriptions?customer_id=${customerId}`, {
     headers: { Authorization: `Bearer ${process.env.DODO_API_KEY}` },
   });
 
   const text = await res.text();
-  console.log('Dodo status:', res.status, 'body:', text);
-
-  if (!text) {
-    return NextResponse.json({ error: 'Empty response from Dodo' }, { status: 500 });
+  if (!res.ok || !text) {
+    return NextResponse.json({ error: 'Failed to fetch subscription' }, { status: 500 });
   }
 
-  const subscription = JSON.parse(text);
-  return NextResponse.json(subscription);
+  const { items } = JSON.parse(text);
+  const sub = items?.[0];
+
+  if (!sub) {
+    return NextResponse.json({ error: 'No subscription found' }, { status: 404 });
+  }
+
+  // map product_id to plan
+  const TEAM_PRODUCT_ID = process.env.DODO_CXGRD_TEAM_KEY ?? '';
+  const PRO_PRODUCT_ID = process.env.DODO_CXGRD_PRO_KEY ?? '';
+
+  const plan = sub.product_id === TEAM_PRODUCT_ID ? 'team'
+            : sub.product_id === PRO_PRODUCT_ID  ? 'pro'
+            : 'free';
+
+  return NextResponse.json({
+    plan,
+    status: sub.status,
+    renewsAt: sub.next_billing_date,
+    startedAt: sub.created_at,
+    amount: sub.recurring_pre_tax_amount,  // already in cents
+    cycle: sub.payment_frequency_interval.toLowerCase(), // "month" or "year"
+    seats: undefined,
+    portalUrl: null,
+  });
 }

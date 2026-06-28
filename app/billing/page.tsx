@@ -20,7 +20,6 @@ interface Subscription {
   amount: number;         // USD cents — 0 for free/enterprise
   cycle: BillingCycle;
   seats?: Seat;           // team & enterprise only
-  portalUrl: string;      // Dodo portal — null for enterprise (contact sales)
   contactSales?: boolean; // enterprise: show contact instead of portal
 }
 
@@ -35,6 +34,7 @@ const PLAN_META: Record<Plan, { label: string; color: string; bg: string; desc: 
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
   active:   { bg: 'rgba(16,185,129,0.08)',  text: '#34d399', dot: '#10b981' },
+  pending:  { bg: 'rgba(234,179,8,0.08)',   text: '#facc15', dot: '#eab308' },
   canceled: { bg: 'rgba(148,163,184,0.08)', text: '#94a3b8', dot: '#64748b' },
   past_due: { bg: 'rgba(239,68,68,0.08)',   text: '#f87171', dot: '#ef4444' },
 };
