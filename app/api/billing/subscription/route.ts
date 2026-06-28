@@ -23,6 +23,13 @@ export async function GET(request: Request) {
     headers: { Authorization: `Bearer ${process.env.DODO_API_KEY}` },
   });
 
-  const subscription = await res.json();
+  const text = await res.text();
+  console.log('Dodo status:', res.status, 'body:', text);
+
+  if (!text) {
+    return NextResponse.json({ error: 'Empty response from Dodo' }, { status: 500 });
+  }
+
+  const subscription = JSON.parse(text);
   return NextResponse.json(subscription);
 }
