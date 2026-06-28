@@ -9,7 +9,7 @@ export function UserNav({githublink} : {githublink : string}) {
     fetch ('/api/auth/me')
       .then(r => r.ok? r.json() : null)
       .then(data => {
-        if (data?.authenticated) setUser({login : data.github_login});
+        if (data?.authenticated) setUser({login : data.githubLogin});
       })
       .catch(() => {})
   }, []);
