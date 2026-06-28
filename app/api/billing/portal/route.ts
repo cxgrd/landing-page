@@ -18,7 +18,7 @@ export async function POST(request: Request) {
   if (!customerId) return NextResponse.json({ error: 'No subscription found' }, { status: 404 });
 
   const res = await fetch(
-    `https://api.dodopayments.com/customers/${customerId}/customer-portal/session`,
+    `https://live.dodopayments.com/customers/${customerId}/customer-portal/session`,
     { method: 'POST', headers: { Authorization: `Bearer ${process.env.DODO_API_KEY}` } }
   );
   const { url } = await res.json();
