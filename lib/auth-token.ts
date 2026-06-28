@@ -106,10 +106,14 @@ export function createAuthToken(
 export function verifyAuthToken(token: string): CxgrdAuthTokenPayload | null {
   try {
     const decoded = decodeAndVerify(token);
-    if (!decoded || isExpired(decoded.exp)) return null;
-
-    if (typeof decoded.sub !== 'string' || typeof decoded.email !== 'string') return null;
-
+    if (!decoded || isExpired(decoded.exp)) {
+      console.error('verifyAuthToken: invalid or expired', { decoded, exp: decoded?.exp });
+      return null;
+    }
+    if (typeof decoded.sub !== 'string' || typeof decoded.email !== 'string') {
+      console.error('verifyAuthToken: missing sub or email', decoded);
+      return null;
+    }
     return {
       sub: decoded.sub,
       email: decoded.email,
@@ -120,7 +124,8 @@ export function verifyAuthToken(token: string): CxgrdAuthTokenPayload | null {
       iat: typeof decoded.iat === 'number' ? decoded.iat : 0,
       exp: typeof decoded.exp === 'number' ? decoded.exp : 0,
     };
-  } catch {
+  } catch(err) {
+    console.error('verifyAuthToken error:', err);
     return null;
   }
 }

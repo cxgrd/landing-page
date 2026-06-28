@@ -336,7 +336,7 @@ export default function BillingPage() {
 
         {/* footnote */}
         <p style={{ fontSize: '12px', color: '#334155', marginTop: '1rem', lineHeight: '1.6' }}>
-          Subscription changes are handled through our billing portal. Cancellation takes effect at
+          Subscription changes are handled by Dodo Payments. Cancellation takes effect at
           the end of your current billing period.{' '}
           <a href="/legal/refund" style={{ color: '#475569', textDecoration: 'underline' }}>Refund policy</a>
         </p>

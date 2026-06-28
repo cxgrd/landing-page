@@ -5,13 +5,13 @@ import { Footer } from "@/components/Footer";
 const releases = [
   {
     version: "v0.1.23",
-    date: "June 19, 2026",
+    date: "June 128, 2026",
     badge: "latest",
     badgeColor: "emerald",
     changes: [
       { type: "improved", text: "config command now provides clearer feedback and options" },
       { type: "improved", text: "Documentation updated with clearer examples and explanations" },
-      { type: "new", text: "added manage subscription page "}
+      { type: "new", text: "added billing page "}
     ],
   },
   {
