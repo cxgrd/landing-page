@@ -148,13 +148,19 @@ export default function BillingPage() {
   }, []);
 
   const openPortal = async () => {
+    // open window immediately on click before any async work
+    const portalWindow = window.open('', '_blank');
+    
     const me = await fetch('/api/auth/me').then(r => r.json());
     const res = await fetch('/api/billing/portal', {
       method: 'POST',
       headers: { Authorization: `Bearer ${me.token}` },
     });
-    const { url } = await res.json();
-    if (url) window.open(url, '_blank');
+    const { link } = await res.json();
+    
+    if (link && portalWindow) {
+      portalWindow.location.href = link;
+    }
   };
 
   const meta = sub ? PLAN_META[sub.plan] : null;
