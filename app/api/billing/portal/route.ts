@@ -21,6 +21,6 @@ export async function POST(request: Request) {
     `https://live.dodopayments.com/customers/${customerId}/customer-portal/session`,
     { method: 'POST', headers: { Authorization: `Bearer ${process.env.DODO_API_KEY}` } }
   );
-  const { url } = await res.json();
-  return NextResponse.json({ url });
+  const { link } = await res.json();
+  return NextResponse.json({ link });
 }
