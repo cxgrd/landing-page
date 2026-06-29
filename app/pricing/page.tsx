@@ -19,7 +19,6 @@ const pricingTiers = [
       "Blast radius analysis",
       "Compiler-backed checks",
       "No cloud storage",
-      "Personal use only",
     ],
     cta: "Get Started Free",
     ctaVariant: "secondary" as const,
@@ -37,7 +36,6 @@ const pricingTiers = [
       "Advanced analysis features",
       "Cloud backup & sync",
       "Priority support",
-      "API access",
     ],
     cta: "Get Pro",
     ctaVariant: "primary" as const,
@@ -57,7 +55,7 @@ const pricingTiers = [
       "Architecture health metrics",
       "Merge policy enforcement",
     ],
-    cta: "Coming Soon",
+    cta: "Get Team",
     ctaVariant: "primary" as const,
     highlight: false,
     action: "coming_soon",
@@ -90,7 +88,6 @@ export default function PricingPage() {
     if (action === "coming_soon") return;
 
     if (action === "free") {
-      // Scroll to install instructions or docs
       window.location.href = "/#install";
       return;
     }
@@ -101,9 +98,11 @@ export default function PricingPage() {
       return;
     }
 
-    if (action === "team") {
-      window.location.href = "/team";
-    }
+    // if (action === "team") {
+    //   setLoadingTier(tierName);
+    //   window.location.href = `/api/auth/github/start?intent=upgrade&plan=team`;
+    //   return;
+    // }
   };
 
   return (

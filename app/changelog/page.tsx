@@ -4,10 +4,21 @@ import { Footer } from "@/components/Footer";
 
 const releases = [
   {
-    version: "v0.1.23",
-    date: "June 128, 2026",
+    version: "v0.1.30",
+    date: "June 29, 2026",
     badge: "latest",
     badgeColor: "emerald",
+    changes: [
+      { type: "improved", text: "`check --ci` command improved, pushes PR statuses to GitHub" },
+      { type: "new", text: "github-installation route added to fetch github details for dashboard" },
+      { type: "breaking", text: "docs need to be updated to reflect new changes in check command and github-installation route" },
+    ],
+  },
+  {
+    version: "v0.1.23",
+    date: "June 28, 2026",
+    badge: null,
+    badgeColor: null,
     changes: [
       { type: "improved", text: "config command now provides clearer feedback and options" },
       { type: "improved", text: "Documentation updated with clearer examples and explanations" },

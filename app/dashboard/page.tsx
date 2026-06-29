@@ -505,6 +505,9 @@ export default function DashboardPage() {
   const [error, setError]           = useState<string | null>(null);
   const [realtimeOn, setRealtimeOn] = useState(false);
 
+  const [repoInput, setRepoInput] = useState('');
+  const [githubInstalled, setGithubInstalled] = useState<boolean | null>(null);
+
   const [roleFilter, setRoleFilter]   = useState('all');
   const [eventFilter, setEventFilter] = useState('all');
 
@@ -537,6 +540,13 @@ export default function DashboardPage() {
         const j = await trendRes.json();
         setTrend(j.snapshots ?? []);
       }
+
+      const installRes = await fetch(`/api/teams/${teamId}/github-installation`, { headers: h });
+      if (installRes.ok) {
+        const j = await installRes.json();
+        setGithubInstalled(j.installed);
+      }
+
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load');
     } finally {
@@ -622,6 +632,26 @@ export default function DashboardPage() {
           <h1 style={{ fontSize: '20px', fontWeight: 600, color: '#f4f7ff', margin: 0 }}>Dashboard</h1>
         </div>
         {loaded && <LiveDot active={realtimeOn} />}
+
+        {githubInstalled === false && (
+          <a
+            href="https://github.com/apps/CXGRD/installations/new"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              background: 'linear-gradient(135deg,#3b82f6,#6366f1)',
+            borderRadius: '6px', padding: '8px 16px',
+            color: '#fff', fontSize: '12px', fontWeight: 500,
+            textDecoration: 'none', display: 'inline-block',
+          }}
+        >
+          Install GitHub App
+        </a>
+      )}
+      {githubInstalled === true && (
+        <span style={{ fontSize: '11px', color: '#22c55e' }}>✓ GitHub App installed</span>
+      )}
+
       </div>
 
       {/* Auth panel — shown when not auto-loaded from cookie */}
@@ -647,8 +677,28 @@ export default function DashboardPage() {
       {loaded && !repoId && (
         <div style={{ background: 'rgba(10,16,30,0.7)', border: '1px solid rgba(148,163,184,0.14)', borderRadius: '10px', padding: '12px 16px', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '12px', color: '#64748b' }}>Repo ID for health data:</span>
-          <input value={repoId} onChange={e => setRepoId(e.target.value)} placeholder="folder name" onKeyDown={e => e.key === 'Enter' && fetchAll(token, teamId, repoId)} style={{ ...inputStyle, width: '200px' }} />
-          <button onClick={() => fetchAll(token, teamId, repoId)} style={{ background: 'rgba(59,130,246,0.2)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: '6px', padding: '6px 14px', color: '#60a5fa', fontSize: '12px', cursor: 'pointer' }}>Load health</button>
+          <input
+            value={repoInput}
+            onChange={e => setRepoInput(e.target.value)}
+            placeholder="folder name"
+            onKeyDown={e => {
+              if (e.key === 'Enter' && repoInput.trim()) {
+                setRepoId(repoInput.trim());
+                fetchAll(token, teamId, repoInput.trim());
+              }
+            }}
+            style={{ ...inputStyle, width: '200px' }}
+          />
+          <button 
+            onClick={() => {
+              if (repoInput.trim()) {
+                setRepoId(repoInput.trim());
+                fetchAll(token, teamId, repoInput.trim());
+              }
+            }} 
+            style={{ background: 'rgba(59,130,246,0.2)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: '6px', padding: '6px 14px', color: '#60a5fa', fontSize: '12px', cursor: 'pointer' }}>
+            Load health
+          </button>
         </div>
       )}
 

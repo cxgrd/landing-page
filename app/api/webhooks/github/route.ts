@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyWebhookSignature, postCommitStatus } from '@/lib/github-app';
 import { ensureAuthSchema } from '@/lib/auth-db';
-import { ensureMergePolicyTable, getMergePolicyByRepo } from '@/lib/merge-policy-db';
+import { ensureMergePolicyTable, getMergePolicyByRepo, upsertInstallation, ensureInstallationsTable } from '@/lib/merge-policy-db';
+import { dbQuery } from '@/lib/db';
+
+interface InstallationPayload {
+  action: string;
+  installation: { id: number; account: { login: string; type: string } };
+  repositories?: { full_name: string }[];
+  repositories_added?: { full_name: string }[];
+}
 
 // GitHub sends the raw body for HMAC verification — we must read it as text first
 export async function POST(request: NextRequest) {
@@ -17,6 +25,37 @@ export async function POST(request: NextRequest) {
   }
 
   // 2. We only care about pull_request events
+  if (eventType === 'installation' || eventType === 'installation_repositories') {
+    const payload = JSON.parse(body) as InstallationPayload;
+    const { action, installation, repositories, repositories_added } = payload;
+
+    if (action === 'deleted') {
+      await dbQuery(`delete from github_installations where installation_id = $1`, [installation.id]);
+      return NextResponse.json({ ok: true, result: 'uninstalled' });
+    }
+
+    const repos = (repositories ?? repositories_added ?? []).map((r: { full_name: string }) => r.full_name);
+    await ensureInstallationsTable();
+    await upsertInstallation({
+      installationId: installation.id,
+      accountLogin:   installation.account.login,
+      accountType:    installation.account.type,
+      repoFullNames:  repos,
+    });
+    const team = await dbQuery(
+      `select id from teams where github_login = $1 limit 1`,
+      [installation.account.login]
+    );
+    if (team.rows[0]) {
+      await dbQuery(
+        `update github_installations set team_id = $1 where installation_id = $2`,
+        [team.rows[0].id, installation.id]
+      );
+    }
+
+    return NextResponse.json({ ok: true, result: 'installation_saved' });
+  }
+
   if (eventType !== 'pull_request') {
     return NextResponse.json({ ok: true, skipped: true });
   }

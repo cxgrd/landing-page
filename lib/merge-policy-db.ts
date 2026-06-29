@@ -128,3 +128,45 @@ export async function listMergePolicies(teamId: string): Promise<MergePolicy[]> 
   );
   return result.rows.map(mapPolicy);
 }
+
+export async function ensureInstallationsTable(): Promise<void> {
+  await dbQuery(`
+    create table if not exists github_installations (
+      installation_id bigint primary key,
+      team_id         uuid references teams(id) on delete set null,
+      account_login   text not null,
+      account_type    text not null,
+      repo_full_names text[] not null default '{}',
+      installed_at    timestamptz not null default now(),
+      updated_at      timestamptz not null default now()
+    );
+  `);
+}
+
+export async function upsertInstallation(input: {
+  installationId: number;
+  accountLogin: string;
+  accountType: string;
+  repoFullNames: string[];
+}): Promise<void> {
+  await dbQuery(
+    `insert into github_installations
+       (installation_id, account_login, account_type, repo_full_names)
+     values ($1, $2, $3, $4)
+     on conflict (installation_id) do update
+     set account_login   = excluded.account_login,
+         repo_full_names = excluded.repo_full_names,
+         updated_at      = now()`,
+    [input.installationId, input.accountLogin, input.accountType, `{${input.repoFullNames.join(',')}}`],
+  );
+}
+
+export async function getInstallationByRepo(repoFullName: string): Promise<{ installationId: number; teamId: string | null } | null> {
+  const result = await dbQuery<{ installation_id: number; team_id: string | null }>(
+    `select installation_id, team_id from github_installations
+     where $1 = any(repo_full_names) limit 1`,
+    [repoFullName],
+  );
+  const row = result.rows[0];
+  return row ? { installationId: Number(row.installation_id), teamId: row.team_id } : null;
+}
