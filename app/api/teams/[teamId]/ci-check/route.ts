@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken } from '@/lib/auth-token';
 import { ensureAuthSchema, getTeamMember, getTeamById } from '@/lib/auth-db';
-import { ensureMergePolicyTable, getMergePolicy } from '@/lib/merge-policy-db';
+import { ensureMergePolicyTable, getMergePolicy, getInstallationByRepo } from '@/lib/merge-policy-db';
 import { postCommitStatus } from '@/lib/github-app';
 import { insertAuditEvent } from '@/lib/auth-db';
 
@@ -10,6 +10,17 @@ function extractToken(req: NextRequest): string | null {
   if (auth?.startsWith('Bearer ')) return auth.slice(7);
   return null;
 }
+
+interface ImpactedFile {
+  path: string;
+  reason: string;
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  distance: number;
+  impactType: 'direct' | 'transitive' | 'potential';
+  changeRequired: boolean;
+  suggestedFix?: string;
+}
+
 
 // POST /api/teams/[teamId]/ci-check
 // Called by `cxgrd check --ci` after running checks locally.
@@ -36,6 +47,10 @@ export async function POST(
     const body = await request.json() as {
       repoId?: string;
       gitRef?: string;
+      changedFiles : string[];
+      blastRadius: number,
+      impactedFiles: ImpactedFile[],
+      riskLevel: "critical" | "high" | "medium" | "low"
       passed?: boolean;
       issueCount?: number;
       errorCount?: number;
@@ -64,8 +79,12 @@ export async function POST(
       metadata: { issueCount: body.issueCount, errorCount: body.errorCount, ci: true },
     });
 
+    const repoFullName = body.repoFullName ?? `${body.repoOwner}/${body.repoName}`;
+    const installation = repoFullName ? await getInstallationByRepo(repoFullName) : null;
+    const installationId = body.installationId ?? installation?.installationId;
+
     // Post GitHub commit status if we have enough info
-    if (body.installationId && body.repoOwner && body.repoName) {
+    if (installationId && body.repoOwner && body.repoName) {
       // Also check merge policy for policy-level block
       let policyBlocked = false;
       let policyReason  = '';
@@ -87,7 +106,7 @@ export async function POST(
         owner:          body.repoOwner,
         repo:           body.repoName,
         sha:            body.gitRef,
-        installationId: body.installationId,
+        installationId: installationId,
         state:          blocked ? 'failure' : 'success',
         description:    description.slice(0, 140),
         targetUrl:      'https://cxgrd.com/dashboard',
