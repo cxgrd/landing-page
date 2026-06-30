@@ -42,8 +42,14 @@ export async function POST(request: NextRequest) {
       accountType:    installation.account.type,
       repoFullNames:  repos,
     });
+
+    // TODO : If a team admin or dev installs the app under their own GitHub login (not the owner's), this lookup will still fail to find a team. That's an edge case to handle later
+
     const team = await dbQuery(
-      `select id from teams where github_login = $1 limit 1`,
+      `select t.id from teams t
+      join individual_accounts a on a.id = t.owner_id
+      where a.github_login = $1
+      limit 1`,
       [installation.account.login]
     );
     if (team.rows[0]) {
