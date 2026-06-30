@@ -541,7 +541,7 @@ export default function DashboardPage() {
         setTrend(j.snapshots ?? []);
       }
 
-      const installRes = await fetch(`/api/teams/${teamId}/github-installation`, { headers: h });
+      const installRes = await fetch(`/api/teams/${tid}/github-installation`, { headers: h });
       if (installRes.ok) {
         const j = await installRes.json();
         setGithubInstalled(j.installed);
