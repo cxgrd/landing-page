@@ -83,7 +83,7 @@ function decodeAndVerify(token: string): Record<string, unknown> | null {
 }
 
 function isExpired(exp: unknown): boolean {
-  if (exp === undefined || exp === null) return true;
+  if (exp === undefined || exp === null) return false;
   if (typeof exp !== 'number') return true;
   return Math.floor(Date.now() / 1000) >= exp;
 }
