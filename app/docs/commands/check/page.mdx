@@ -10,6 +10,8 @@ cxgrd check . --staged        # only staged files (great for pre-commit hooks)
 cxgrd check . --strict        # fail if compiler tools are missing (recommended for CI)
 ```
 
+Compiler verification is currently supported for TS, Python and Rust only.
+
 > Compiler backed verification works only if the compilers for the particular programming language are installed on the system.
 
 ## Example output
