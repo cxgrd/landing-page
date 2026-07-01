@@ -344,6 +344,17 @@ export async function ensureAuthSchema(): Promise<void> {
     `create index if not exists team_invite_tokens_team_idx on team_invite_tokens (team_id, expires_at desc);`,
   );
 
+  await dbQuery(`
+    create table if not exists ci_tokens (
+      id uuid primary key default gen_random_uuid(),
+      team_id uuid not null references teams(id) on delete cascade,
+      account_id uuid not null references individual_accounts(id) on delete cascade,
+      token_hash text not null unique,
+      label text not null default 'CI Token',
+      created_at timestamptz not null default now()
+    );
+  `);
+
   schemaEnsured = true;
 }
 
@@ -899,4 +910,37 @@ export async function listHealthSnapshots(
     [teamId, repoId, Math.min(limit, 60)],
   );
   return result.rows.map(mapHealthSnapshot);
+}
+
+export async function storeCiToken(input: {
+  teamId: string;
+  accountId: string;
+  tokenHash: string;
+  label: string;
+}): Promise<void> {
+  await dbQuery(
+    `insert into ci_tokens (team_id, account_id, token_hash, label)
+     values ($1, $2, $3, $4)`,
+    [input.teamId, input.accountId, input.tokenHash, input.label],
+  );
+}
+
+export async function listCiTokens(teamId: string): Promise<{ id: string; label: string; createdAt: Date }[]> {
+  const result = await dbQuery<{ id: string; label: string; created_at: Date }>(
+    `select id, label, created_at from ci_tokens where team_id = $1 order by created_at desc`,
+    [teamId],
+  );
+  return result.rows.map(r => ({ id: r.id, label: r.label, createdAt: new Date(r.created_at) }));
+}
+
+export async function revokeCiToken(id: string, teamId: string): Promise<void> {
+  await dbQuery(`delete from ci_tokens where id = $1 and team_id = $2`, [id, teamId]);
+}
+
+export async function isCiTokenValid(tokenHash: string): Promise<boolean> {
+  const result = await dbQuery(
+    `select id from ci_tokens where token_hash = $1 limit 1`,
+    [tokenHash],
+  );
+  return result.rows.length > 0;
 }

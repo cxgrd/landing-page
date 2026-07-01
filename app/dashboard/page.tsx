@@ -247,7 +247,7 @@ function LiveDot({ active }: { active: boolean }) {
 
 // ─── Merge policies panel ─────────────────────────────────────────────────────
 
-function MergePoliciesPanel({ token, teamId, role }: { token: string; teamId: string; role: OrgRole }) {
+function MergePoliciesPanel({ token, teamId, role, defaultRepo }: { token: string; teamId: string; role: OrgRole; defaultRepo?: string }) {
   const [policies, setPolicies]     = useState<MergePolicy[]>([]);
   const [loadingP, setLoadingP]     = useState(true);
   const [saving, setSaving]         = useState(false);
@@ -255,7 +255,7 @@ function MergePoliciesPanel({ token, teamId, role }: { token: string; teamId: st
   const [saved, setSaved]           = useState(false);
 
   // Form state
-  const [repo, setRepo]         = useState('');
+  const [repo, setRepo]         = useState(defaultRepo ?? '');
   const [maxBlast, setMaxBlast] = useState(50);
   const [blockOn, setBlockOn]   = useState<string[]>(['critical', 'high']);
   const [enabled, setEnabled]   = useState(true);
@@ -278,6 +278,8 @@ function MergePoliciesPanel({ token, teamId, role }: { token: string; teamId: st
       setLoadingP(false);
     }
   }, [token, teamId]);
+
+  useEffect(() => { if (defaultRepo) setRepo(defaultRepo); }, [defaultRepo]);
 
   useEffect(() => { loadPolicies(); }, [loadPolicies]);
 
@@ -511,6 +513,11 @@ export default function DashboardPage() {
   const [roleFilter, setRoleFilter]   = useState('all');
   const [eventFilter, setEventFilter] = useState('all');
 
+  const [ciTokens, setCiTokens] = useState<{ id: string; label: string; createdAt: string }[]>([]);
+  const [newToken, setNewToken] = useState<string | null>(null);
+  const [ciLabel, setCiLabel] = useState('GitHub Actions');
+
+
   const channelRef = useRef<RealtimeChannel | null>(null);
 
   const fetchAll = useCallback(async (t: string, tid: string, rid: string) => {
@@ -547,12 +554,40 @@ export default function DashboardPage() {
         setGithubInstalled(j.installed);
       }
 
+      const ciRes = await fetch(`/api/teams/${tid}/ci-token`, { headers: h });
+      if (ciRes.ok) {
+        const j = await ciRes.json();
+        setCiTokens(j.tokens);
+      }
+
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load');
     } finally {
       setLoading(false);
     }
   }, []);
+
+  // generate handler:
+  async function generateCiToken() {
+    const res = await fetch(`/api/teams/${teamId}/ci-token`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ label: ciLabel }),
+    });
+    const j = await res.json();
+    setNewToken(j.token);
+    fetchAll(token, teamId, repoId); // refresh list
+  }
+
+  // revoke handler:
+  async function revokeCiToken(id: string) {
+    await fetch(`/api/teams/${teamId}/ci-token`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    fetchAll(token, teamId, repoId);
+  }
 
   const subscribeRealtime = useCallback((tid: string) => {
     const sb = getSupabaseClient();
@@ -680,7 +715,7 @@ export default function DashboardPage() {
           <input
             value={repoInput}
             onChange={e => setRepoInput(e.target.value)}
-            placeholder="folder name"
+            placeholder="owner/name (e.g. acme/backend)"
             onKeyDown={e => {
               if (e.key === 'Enter' && repoInput.trim()) {
                 setRepoId(repoInput.trim());
@@ -756,7 +791,7 @@ export default function DashboardPage() {
           )}
 
           {/* Merge policies */}
-          <MergePoliciesPanel token={token} teamId={teamId} role={role} />
+          <MergePoliciesPanel token={token} teamId={teamId} role={role} defaultRepo={repoId}/>
 
           {/* Activity feed */}
           <div style={{ background: 'rgba(10,16,30,0.7)', border: '1px solid rgba(148,163,184,0.12)', borderRadius: '10px', overflow: 'hidden' }}>
@@ -812,6 +847,51 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
+
+          {/* CI Setup */}
+          <div style={{ marginTop: '24px', padding: '16px', background: '#0f172a', borderRadius: '8px', border: '1px solid #1e293b' }}>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: '#94a3b8', marginBottom: '12px' }}>CI SETUP</div>
+
+            {newToken && (
+              <div style={{ marginBottom: '12px', padding: '10px', background: '#042f2e', borderRadius: '6px', border: '1px solid #065f46' }}>
+                <div style={{ fontSize: '11px', color: '#34d399', marginBottom: '4px' }}>Token generated — copy it now, it won't be shown again</div>
+                <div style={{ fontFamily: 'monospace', fontSize: '11px', color: '#fff', wordBreak: 'break-all' }}>{newToken}</div>
+                <button onClick={() => navigator.clipboard.writeText(newToken)}
+                  style={{ marginTop: '6px', fontSize: '11px', padding: '4px 10px', background: '#065f46', color: '#34d399', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                  Copy
+                </button>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+              <input value={ciLabel} onChange={e => setCiLabel(e.target.value)}
+                placeholder="Token label"
+                style={{ flex: 1, padding: '6px 10px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', color: '#fff', fontSize: '12px' }} />
+              <button onClick={generateCiToken}
+                style={{ padding: '6px 14px', background: 'linear-gradient(135deg,#3b82f6,#6366f1)', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>
+                Generate
+              </button>
+            </div>
+
+            {ciTokens.length > 0 && (
+              <div style={{ fontSize: '11px', color: '#64748b' }}>
+                {ciTokens.map(t => (
+                  <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid #1e293b' }}>
+                    <span>{t.label} — <span style={{ color: '#475569' }}>{new Date(t.createdAt).toLocaleDateString()}</span></span>
+                    <button onClick={() => revokeCiToken(t.id)}
+                      style={{ fontSize: '10px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}>
+                      Revoke
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={{ marginTop: '12px', fontSize: '11px', color: '#475569' }}>
+              Add <code style={{ color: '#94a3b8' }}>CXGRD_AUTH_TOKEN</code> to your repo's GitHub Actions secrets with the generated token.
+            </div>
+          </div>
+
         </>
       )}
 

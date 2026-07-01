@@ -13,6 +13,7 @@ export interface CxgrdAuthTokenPayload {
   // Team fields — only present for team plan members
   team_id?: string;
   team_role?: OrgRole;
+  ci?: boolean;
   iat: number;
   exp: number;
 }
@@ -82,6 +83,7 @@ function decodeAndVerify(token: string): Record<string, unknown> | null {
 }
 
 function isExpired(exp: unknown): boolean {
+  if (exp === undefined || exp === null) return true;
   if (typeof exp !== 'number') return true;
   return Math.floor(Date.now() / 1000) >= exp;
 }
@@ -89,6 +91,18 @@ function isExpired(exp: unknown): boolean {
 function normalizeRole(role: unknown): OrgRole | undefined {
   if (role === 'owner' || role === 'admin' || role === 'dev') return role;
   return undefined;
+}
+
+export function createCiToken(
+  payload: Omit<CxgrdAuthTokenPayload, 'iat' | 'exp'>,
+): string {
+  const now = Math.floor(Date.now() / 1000);
+  return encodeToken({
+    ...payload,
+    ci: true,
+    iat: now,
+    // no exp field — token never expires
+  });
 }
 
 export function createAuthToken(
@@ -122,7 +136,7 @@ export function verifyAuthToken(token: string): CxgrdAuthTokenPayload | null {
       team_id: typeof decoded.team_id === 'string' ? decoded.team_id : undefined,
       team_role: normalizeRole(decoded.team_role),
       iat: typeof decoded.iat === 'number' ? decoded.iat : 0,
-      exp: typeof decoded.exp === 'number' ? decoded.exp : 0,
+      exp: typeof decoded.exp === 'number' ? decoded.exp : -1,
     };
   } catch(err) {
     console.error('verifyAuthToken error:', err);
