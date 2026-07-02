@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 const SEAT_PRICE = 16;
 const MIN_SEATS = 5;
-const TEAM_PRODUCT_ID = process.env.DODO_CXGRD_TEAM_KEY;
+const TEAM_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_CXGRD_TEAM_KEY;
 
 export default function TeamPage() {
   const [teamName, setTeamName]   = useState('');
