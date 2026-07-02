@@ -5,23 +5,39 @@ Validates your project structurally and with compiler-backed checks. Catches cir
 ## Usage
 
 ```bash
-cxgrd check .
-cxgrd check . --staged        # only staged files (great for pre-commit hooks)
-cxgrd check . --strict        # fail if compiler tools are missing (recommended for CI)
+cxgrd check                   # full project check
+cxgrd check --staged          # only staged files (great for pre-commit hooks)
+cxgrd check --strict          # fail if compiler tools are missing
+cxgrd check --ci              # CI mode: post result to server for GitHub PR status (Team plan)
 ```
 
-Compiler verification is currently supported for TS, Python and Rust only.
+Compiler verification is currently supported for TypeScript, Python, and Rust.
 
-> Compiler backed verification works only if the compilers for the particular programming language are installed on the system.
+> Compiler-backed verification works only if the compilers for the relevant language are installed on the system. Run `cxgrd doctor` to check your toolchain.
+
+## Options
+
+`--staged` — Only check git staged files.
+
+`--changed` — Only check staged and unstaged changed files.
+
+`--skip-compiler` — Skip compiler-backed verification.
+
+`--skip-structural` — Skip structural graph checks.
+
+`--strict` — Strict mode. Fail if a detected language compiler was skipped instead of just warning.
+
+`--ci` — CI mode. Posts the check result to the CXGRD server, which evaluates your team's merge policy and updates the GitHub commit status on the PR (Team plan only).
 
 ## Example output
 
 ```bash
-PS C:\Users\name\project1> cxgrd check .
+$ cxgrd check
 ✓ Running cxgrd check...
    Structural analysis...
    Compiler verification (TypeScript, Python, Rust)...
    Compiler runs:
+     · typescript (typescript @ .): ok — 0 errors, 0 warnings
      · python (pyright @ .): skipped — pyright not found on PATH (install with: pip install pyright)
    ⚠ Skipped compiler(s) for: python — not counted as failures.
      Use --strict or run `cxgrd doctor` to fix your toolchain.
@@ -29,23 +45,36 @@ PS C:\Users\name\project1> cxgrd check .
    Scope: full project · Mode: permissive · 0 errors (0 structural, 0 compiler) · 0 warnings
 ```
 
-## Options
+## CI mode (`--ci`)
 
-`--staged` : Only checks git staged files
+`check --ci` is designed to run inside GitHub Actions on every pull request. It:
 
-`--changed` : Only checks staged and unstaged changed files
+1. Runs the full structural + compiler check locally on the CI runner
+2. Posts the result to `/api/teams/:id/ci-check` on the CXGRD server
+3. The server evaluates the result against your team's merge policy
+4. GitHub commit status is updated (`✓` or `✗`) on the PR
 
-`--skip-compiler` : Skip compiler-backed verification
+### Setup
 
-`--skip-structural` : Skip structural graph checks
+**Step 1 — Install the GitHub App**
 
-`--strict` : Conduct strict checks on all files. Fail if a detected language compiler was skipped
+Go to your team dashboard and click **Install GitHub App**. This authorizes CXGRD to post commit statuses to your repos.
 
-`--ci` : CI mode: post result to server for GitHub PR status (Team plan). 
+**Step 2 — Generate a CI token**
 
-The `--ci` option requires some efforts. It is a GitHub Actions workflow step, so you need to configure CI pipeline with a yaml file:
+Go to your team dashboard → CI Setup → Generate. Copy the token — it's shown only once.
 
-```bash
+**Step 3 — Add the secret to your repo**
+
+Go to your repo on GitHub → Settings → Secrets and variables → Actions → New repository secret:
+- Name: `CXGRD_AUTH_TOKEN`
+- Value: paste the CI token
+
+**Step 4 — Add the workflow file**
+
+Create `.github/workflows/cxgrd.yml` in your repo:
+
+```yaml
 name: cxgrd check
 
 on:
@@ -53,37 +82,51 @@ on:
     branches: [main]
 
 jobs:
-  architecture:
+  cxgrd:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          node-version: '20'
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
 
       - name: Install cxgrd
         run: npm install -g cxgrd
 
       - name: Scan project
         run: cxgrd scan
-
-      - name: cxgrd architecture check
-        run: cxgrd check --ci --strict
         env:
-          CXGRD_AUTH_TOKEN: ${{ secrets.CXGRD_TOKEN }}
+          CXGRD_AUTH_TOKEN: ${{ secrets.CXGRD_AUTH_TOKEN }}
+
+      - name: Run cxgrd check
+        run: cxgrd check --ci
+        env:
+          CXGRD_AUTH_TOKEN: ${{ secrets.CXGRD_AUTH_TOKEN }}
 ```
 
-CXGRD_AUTH_TOKEN is the team member's cxgrd JWT stored as a GitHub Actions secret. The dev adds it once under repo settings → Secrets → Actions.
+### What happens on a PR
 
-So when a PR is opened,
 ```
-GitHub Actions picks it up
-  → installs cxgrd
-    → scans the repo (builds .cg/ graph)
-      → runs check --ci --strict
+PR opened
+  → GitHub Actions triggers
+    → cxgrd scan (builds .cg/ graph on the runner)
+      → cxgrd check --ci
         → posts result to /api/teams/:id/ci-check
-          → server updates GitHub commit status (✓ or ✗ on the PR)
+          → server checks merge policy
+            → GitHub commit status updated (✓ passed / ✗ blocked)
 ```
+
+### CI token vs login token
+
+The `CXGRD_AUTH_TOKEN` secret should be a **CI token** generated from the dashboard, not your personal login token from `~/.cg/auth.json`. CI tokens never expire — you set them once and they work forever until revoked. Login tokens expire every 30 days.
 
 > Upgrade at https://cxgrd.com/pricing

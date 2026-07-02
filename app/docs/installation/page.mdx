@@ -3,7 +3,7 @@
 ## Requirements
 
 - Node.js 18+
-- Git (for pre-commit hooks)
+- Git (for pre-commit hooks and CI features)
 
 ## npm (recommended)
 
@@ -28,10 +28,24 @@ This creates a `.cg/` folder in your project with the dependency graph, symbol m
 
 ## Pro features
 
-To unlock `cxgrd prompt` and repo memory:
+To unlock `cxgrd prompt` and cloud graph sync:
 
 ```bash
 cxgrd auth login
 ```
 
-This opens GitHub OAuth in your browser. After signing in, visit [cxgrd.com/pricing](https://cxgrd.com/pricing) to upgrade to Pro.
+This opens GitHub OAuth in your browser. After signing in, visit [cxgrd.com/pricing](https://cxgrd.com/pricing) to upgrade.
+
+## Team features
+
+Team plan unlocks shared graph sync, CI merge enforcement, merge policies, the team dashboard, and audit log.
+
+After upgrading to Team:
+
+1. Run `cxgrd auth login` to get a team-scoped JWT
+2. Run `cxgrd scan --team` to push your graph to the shared team cloud
+3. Install the CXGRD GitHub App from your team dashboard
+4. Generate a CI token from the dashboard and add it to your repo's GitHub Actions secrets as `CXGRD_AUTH_TOKEN`
+5. Add the cxgrd workflow file to your repo (see [`cxgrd check --ci`](/docs/commands/check))
+
+> Upgrade at https://cxgrd.com/pricing

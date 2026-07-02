@@ -58,7 +58,7 @@ const pricingTiers = [
     cta: "Get Team",
     ctaVariant: "primary" as const,
     highlight: false,
-    action: "coming_soon",
+    action: "team",
   },
   {
     name: "Enterprise",
@@ -98,11 +98,11 @@ export default function PricingPage() {
       return;
     }
 
-    // if (action === "team") {
-    //   setLoadingTier(tierName);
-    //   window.location.href = `/api/auth/github/start?intent=upgrade&plan=team`;
-    //   return;
-    // }
+    if (action === "team") {
+      setLoadingTier(tierName);
+      window.location.href = `/api/auth/github/start?intent=upgrade&plan=team`;
+      return;
+    }
   };
 
   return (

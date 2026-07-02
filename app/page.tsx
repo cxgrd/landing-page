@@ -13,7 +13,7 @@ const capabilities = [
     title: "Blast radius before edits",
     description:
       "Before prompting AI to change code, CXGRD shows what modules, schemas, and APIs will be impacted downstream.",
-    detail: "Prevent silent breakage before implementation begins",
+    detail: "Unlike session-level AI guardrails, blast radius analysis persists across tools and sessions",
   },
   {
     title: "Prompt enrichment for coding agents",
@@ -158,6 +158,26 @@ export default function Home() {
             <span className="command-chip rounded-full px-3 py-1.5">AST graph intelligence</span>
             <span className="command-chip rounded-full px-3 py-1.5">Persistent .cg/ repo memory</span>
             <span className="command-chip rounded-full px-3 py-1.5">Compiler-backed validation</span>
+          </div>
+        </section>
+
+        <section id="not-another" className="mt-28 sm:mt-36 flex flex-col items-center gap-10 md:flex-row">
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Not another agent guardrail</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
+              Cursor, Claude Code and other tools guard what the AI does in your editor — permissions, hooks,
+              rules, one session at a time. CXGRD guards what actually merges — dependency-graph-aware, enforced 
+              org-wide, regardless of which tool or person wrote the code.
+            </p>
+          </div>
+          <div className="flex-1 flex justify-center">
+            <Image
+              src="/infographic.png"
+              alt="cursor/claude code: session → editor → local machine vs cxgrd: PR → merge gate → whole org"
+              width={800}
+              height={600}
+              className="rounded-xl scale-120"
+            />
           </div>
         </section>
 

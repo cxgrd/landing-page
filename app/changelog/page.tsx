@@ -4,10 +4,20 @@ import { Footer } from "@/components/Footer";
 
 const releases = [
   {
-    version: "v0.1.30",
-    date: "June 29, 2026",
+    version: "v0.1.33",
+    date: "July 2, 2026",
     badge: "latest",
     badgeColor: "emerald",
+    changes: [
+      { type: "fixed", text: "Documentation updated with clearer examples and explanations for all tiers" },
+      { type: "improved", text: "Landing page UI improved to give clear distinction between other AI tools and CXGRD" },
+    ],
+  },
+  {
+    version: "v0.1.30",
+    date: "June 29, 2026",
+    badge: null,
+    badgeColor: null,
     changes: [
       { type: "improved", text: "`check --ci` command improved, pushes PR statuses to GitHub" },
       { type: "new", text: "github-installation route added to fetch github details for dashboard" },

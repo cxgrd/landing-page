@@ -23,6 +23,7 @@ const nav = [
       { title: 'config', href: '/docs/commands/config' },
     ],
   },
+  { title: 'Team', href: '/docs/team' },
 ]
 
 export default function DocsLayout({ children }: { children: React.ReactNode }) {
