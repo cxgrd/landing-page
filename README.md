@@ -20,6 +20,7 @@ website/
 ├        └──auth/
 ├            └──cli/           #cli auth route
 ├            └──github/        # github auth route
+├        └──billing/           # routes for billing information and manage subscription pages
 ├        └──check/             # verification for team tier
 ├        └──prompt/            # LLM prompt route 
 ├        └──subscribe/         # waitlist route (no more in use)
@@ -30,14 +31,19 @@ website/
 ├        └──error/             # custom error page
 ├        └──github/            # github auth client page
 ├        └──success/           # auth success page
+├    └──billing/               # billing information page
 ├    └──changelog/             # changelog page
 ├    └──checkout/              # checkout page placeholder (no more in use)
+├    └──dashboard/             # team dashboard page
 ├    └──docs/                  # documentation for cxgrd
+├    └──legal/                 # PP, T&C and Refund policy pages
 ├    └──pricing/               # pricing information page 
 ├    └──status/                # health route for status page
+├    └──team/                  # team setup and invite pages
 ├── components/
 ├    └── WaitlistForm.tsx      # Reusable waitlist form component (no more in use)
 ├    └──Footer.tsx             # Common Footer for all pages
+├    └──useNav.tsx             # navbar 
 ├── lib/                       # scripts for DB and plans
 ├── .env.local                 # Environment configuration
 └── package.json and other files            # config files
