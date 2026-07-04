@@ -31,6 +31,11 @@ export default function TeamPage() {
         .then(r => r.json())
         .then(data => data?.accountId);
 
+      if (!accountId) {
+        window.location.href = `/api/auth/github/start?intent=upgrade&targetPlan=team`;
+        return;
+      }
+
       const res = await fetch('/api/teams/intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

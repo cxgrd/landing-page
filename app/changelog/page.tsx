@@ -11,6 +11,7 @@ const releases = [
     changes: [
       { type: "fixed", text: "Documentation updated with clearer examples and explanations for all tiers" },
       { type: "improved", text: "Landing page UI improved to give clear distinction between other AI tools and CXGRD" },
+      { type: "fixed", text: "added guard for null values in team creation" },
     ],
   },
   {
