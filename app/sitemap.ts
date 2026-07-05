@@ -20,7 +20,9 @@ export default function sitemap() : MetadataRoute.Sitemap {
     '/docs/commands/scan',
     '/docs/commands/watch',
     '/pricing',
-    {path : '/legal/', priority : 0.4},
+    {path : '/legal/privacy', priority : 0.4},
+    {path : '/legal/terms', priority : 0.4},
+    {path : '/legal/refund', priority : 0.4},
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
