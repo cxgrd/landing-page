@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Terms & Conditions — cxgrd',
+  title: 'Terms & Conditions — CXGRD',
+  description: 'CXGRD Terms & Conditions — Learn about our terms of service, user responsibilities, and legal agreements for using CXGRD. Understand your rights and obligations when using our platform.',
 };
 
 const Section = ({ id, title, children }: { id: string; title: string; children: React.ReactNode }) => (

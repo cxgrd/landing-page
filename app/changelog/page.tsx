@@ -2,6 +2,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { Footer } from "@/components/Footer";
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Changelog - CXGRD',
+  description: 'Stay up to date with the latest changes and improvements to CXGRD.',
+};
+
+
 const releases = [
   {
     version: "v0.1.33",

@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Refund Policy — cxgrd',
+  title: 'Refund Policy — CXGRD',
+  description: 'CXGRD Refund Policy — Learn about our refund and cancellation policy for subscriptions. Understand the eligibility criteria and how to request a refund.',
 };
 
 const Section = ({ id, title, children }: { id: string; title: string; children: React.ReactNode }) => (

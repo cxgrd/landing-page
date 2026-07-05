@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy — cxgrd',
+  title: 'Privacy Policy — CXGRD',
+  description: 'CXGRD Privacy Policy — Learn how we collect, use, and protect your information when you use our services. Your privacy is important to us.',
 };
 
 const Section = ({ id, title, children }: { id: string; title: string; children: React.ReactNode }) => (

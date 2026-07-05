@@ -2,6 +2,14 @@ import Image from "next/image";
 import { Footer } from "@/components/Footer";
 import { UserNav } from "@/components/useNav";
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Home — CXGRD',
+  description: 'Give architectural context to AI coding tools. CXGRD computes downstream blast radius before edits, checks generated diffs for structural and logic risks, and enforces org-wide guardrails.',
+};
+
+
 const capabilities = [
   {
     title: "Persistent dependency memory",
@@ -54,30 +62,21 @@ const commandFlow = [
 
 const architecture = [
   {
-    title: "C++ core engine",
+    title: "TypeScript CLI",
     points: [
-      "High-performance scanning and filesystem crawling",
-      "AST graph building with caching and parallel analysis",
-      "Foundation for fast repo-scale dependency traversal",
+      "Dependency graph construction from static import analysis",
+      "Blast radius computation across the full file graph",
+      "Compiler-backed checks via tsc, pyright, and cargo",
     ],
   },
   {
-    title: "TypeScript CLI and integrations",
+    title: "Cloud backend",
     points: [
-      "Framework intelligence and plugin-ready wrappers",
-      "Usable CLI commands and workflow integrations",
-      "Future ecosystem hooks for IDEs and team workflows",
+      "Shared team graph storage and health snapshots",
+      "GitHub App integration for PR commit status enforcement",
+      "Merge policy evaluation, audit log, and team dashboard",
     ],
   },
-];
-
-const roadmap = [
-  "AST dependency graph foundation",
-  "Blast radius analysis + pre-commit workflow hooks",
-  "Compiler-backed semantic diff verification",
-  "Prompt generation + persistent repo memory",
-  "Team workflows: shared graphs, policies, dashboards",
-  "Cursor / VS Code plugin integrations",
 ];
 
 export default function Home() {
@@ -114,9 +113,6 @@ export default function Home() {
           <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
             <a href="#how-it-works" className="transition-colors hover:text-white">
               How it works
-            </a>
-            <a href="#architecture" className="transition-colors hover:text-white">
-              Architecture
             </a>
             <a href="#install" className="transition-colors hover:text-white">
               Install
@@ -219,9 +215,9 @@ export default function Home() {
         </section>
 
         <section id="architecture" className="mt-28 sm:mt-36">
-          <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Hybrid architecture</h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Architecture</h2>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
-            CXGRD combines a high-performance native core with an ecosystem-friendly TypeScript command layer.
+            A lightweight TypeScript CLI paired with a cloud backend — no native dependencies, works anywhere Node runs.
           </p>
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             {architecture.map((layer) => (
