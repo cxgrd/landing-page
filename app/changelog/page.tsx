@@ -18,6 +18,7 @@ const releases = [
     badgeColor: "emerald",
     changes: [
       { type: "improved", text: "Added route to delete cookie when user logs out" },
+      { type: "improved", text: "Github callback now sets cookie after CLI auth" },
     ],
   },
   {

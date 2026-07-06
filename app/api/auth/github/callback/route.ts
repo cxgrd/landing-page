@@ -89,9 +89,11 @@ export async function GET(request: NextRequest) {
         plan:      account.plan,
       });
       // No cookie needed for CLI — token is delivered via session polling
-      return NextResponse.redirect(
+      const res = NextResponse.redirect(
         new URL(`/auth/success?source=cli&plan=${account.plan}`, process.env.SITE_URL)
       );
+      setAuthCookie(res, token);
+      return res;
     }
 
     // ── Team upgrade flow — auth first, then redirect to /team form ─────────────
