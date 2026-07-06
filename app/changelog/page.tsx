@@ -12,10 +12,19 @@ export const metadata: Metadata = {
 
 const releases = [
   {
-    version: "v0.1.33",
-    date: "July 2, 2026",
+    version: "v0.1.34",
+    date: "July 6, 2026",
     badge: "latest",
     badgeColor: "emerald",
+    changes: [
+      { type: "improved", text: "Added route to delete cookie when user logs out" },
+    ],
+  },
+  {
+    version: "v0.1.33",
+    date: "July 2, 2026",
+    badge: null,
+    badgeColor: null,
     changes: [
       { type: "fixed", text: "Documentation updated with clearer examples and explanations for all tiers" },
       { type: "improved", text: "Landing page UI improved to give clear distinction between other AI tools and CXGRD" },

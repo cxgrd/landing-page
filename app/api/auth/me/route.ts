@@ -32,9 +32,12 @@ export async function GET(request: NextRequest) {
   });
 }
 
-// POST /api/auth/logout — clears the cookie
+// POST /api/auth/me — clears the cookie
 export async function POST() {
   const res = NextResponse.json({ ok: true });
-  res.cookies.delete('cxgrd_token');
+  res.cookies.set('cxgrd_token', '', {
+    expires: new Date(0),
+    path: '/',
+  });
   return res;
 }

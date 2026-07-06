@@ -50,3 +50,5 @@ website/
 ```
 
 Built for CXGRD - Architectural Guardrails for AI-Native Development
+
+[![Made with Supabase](https://supabase.com/badge-made-with-supabase-dark.svg)](https://supabase.com)
