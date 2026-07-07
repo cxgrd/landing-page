@@ -7,6 +7,7 @@ const footerLinks = {
     { label: "Architecture", href: "/#architecture" },
     { label: "Pricing", href: "/pricing" },
     { label: "Changelog", href: "/changelog" },
+    { label: "FAQs", href: "/faq" },
   ],
   Commands: [
     { label: "cxgrd scan", href: "/docs/commands/scan" },

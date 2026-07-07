@@ -214,6 +214,22 @@ export default function Home() {
           </div>
         </section>
 
+        <section id="watch-demo" className="mt-28 sm:mt-36">
+          <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">See it in action</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
+            See CXGRD in action with this quick walkthrough.
+          </p>
+          <div className="mt-8 flex justify-center">
+            <iframe
+              className="aspect-video w-full max-w-4xl rounded-xl border border-white/10"
+              src="https://www.youtube.com/embed/boxXIXMDHYc?rel=0"
+              title="CXGRD demo video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </section>
+
         <section id="architecture" className="mt-28 sm:mt-36">
           <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Architecture</h2>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">

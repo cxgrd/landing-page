@@ -138,7 +138,7 @@ export default function PricingClient() {
             <a href="/#how-it-works" className="transition-colors hover:text-white">How it works</a>
             <a href="/#architecture" className="transition-colors hover:text-white">Architecture</a>
             <a href="/#install" className="transition-colors hover:text-white">Install</a>
-            <a href="/pricing" className="font-medium text-white transition-colors hover:text-white">Pricing</a>
+            <a href="/pricing" className="font-medium transition-colors hover:text-white">Pricing</a>
             <a href="https://cxgrd.com/docs" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-white">Docs</a>
           </nav>
 
