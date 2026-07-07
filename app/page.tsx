@@ -114,6 +114,9 @@ export default function Home() {
             <a href="#how-it-works" className="transition-colors hover:text-white">
               How it works
             </a>
+            <a href="#architecture" className="transition-colors hover:text-white">
+              Architecture
+            </a>
             <a href="#install" className="transition-colors hover:text-white">
               Install
             </a>
