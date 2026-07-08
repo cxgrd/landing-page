@@ -262,7 +262,7 @@ export default function ChangelogPage() {
 
       <main className="mx-auto w-full max-w-3xl px-6 pb-24 pt-14 sm:pt-20">
         <div className="mb-16 text-center">
-          <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">Changelog</h1>
+          <h1 className="text-4xl font-semibold sm:text-6xl animated-gradient-text bg-gradient-to-r from-blue-300 via-violet-300 to-cyan-300 bg-clip-text text-transparent">Changelog</h1>
           <p className="mt-4 text-slate-400">Every release, every fix. The full history of cxgrd.</p>
         </div>
 
@@ -318,7 +318,6 @@ export default function ChangelogPage() {
             <a href="https://github.com/cxgrd" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 transition-colors">
               Star the repo on GitHub
             </a>{" "}
-            or{" "}
             for release updates.
           </p>
         </div>
