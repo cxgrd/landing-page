@@ -4,7 +4,7 @@ import { createHmac, randomBytes } from 'crypto';
 import { ensureAuthSchema, createTeam } from '@/lib/auth-db';
 import { Resend } from 'resend';
 
-const DODO_TEAM_PRODUCT_ID = process.env.DODO_CXGRD_TEAM_KEY ?? '';
+const DODO_TEAM_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_CXGRD_TEAM_KEY ?? '';
 const resend = new Resend(process.env.RESEND_API_KEY);
 const SITE_URL = process.env.SITE_URL ?? 'https://cxgrd.com';
 

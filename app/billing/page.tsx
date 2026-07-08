@@ -267,7 +267,7 @@ export default function BillingPage() {
                     borderRadius: '6px',
                   }}>
                     <p style={{ fontSize: '12px', color: '#64748b', margin: 0, lineHeight: '1.6' }}>
-                      Your plan is managed by your account team.{' '}
+                      Your plan is managed by our account team.{' '}
                       <a href="mailto:hello@cxgrd.com" style={{ color: '#34d399', textDecoration: 'none' }}>
                         Contact us
                       </a>{' '}

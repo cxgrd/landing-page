@@ -36,7 +36,7 @@ export async function GET(request: Request) {
   }
 
   // map product_id to plan
-  const TEAM_PRODUCT_ID = process.env.DODO_CXGRD_TEAM_KEY ?? '';
+  const TEAM_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_CXGRD_TEAM_KEY ?? '';
   const PRO_PRODUCT_ID = process.env.DODO_CXGRD_PRO_KEY ?? '';
 
   const plan = sub.product_id === TEAM_PRODUCT_ID ? 'team'
