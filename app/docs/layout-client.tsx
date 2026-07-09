@@ -8,7 +8,7 @@ import { Footer } from '@/components/Footer'
 
 const nav = [
   { title: 'Introduction', href: '/docs' },
-  { title: 'Installation', href: '/docs/installation' },
+  { title: 'Quickstart', href: '/docs/quickstart' },
   {
     title: 'Commands',
     children: [
@@ -24,6 +24,8 @@ const nav = [
     ],
   },
   { title: 'Team', href: '/docs/team' },
+  { title: 'How Merge Policies work', href: '/docs/merge-policies' },
+  { title: 'Deterministic Analysis vs. AI Agents', href: '/docs/ai-vs-cxgrd' },
 ]
 
 export default function DocsLayoutClient({ children }: { children: React.ReactNode }) {

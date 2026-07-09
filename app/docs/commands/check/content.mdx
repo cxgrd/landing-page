@@ -86,19 +86,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm install
-
       - name: Install cxgrd
         run: npm install -g cxgrd
 
@@ -112,6 +99,8 @@ jobs:
         env:
           CXGRD_AUTH_TOKEN: ${{ secrets.CXGRD_AUTH_TOKEN }}
 ```
+
+The above script is just an example template.
 
 ### What happens on a PR
 
