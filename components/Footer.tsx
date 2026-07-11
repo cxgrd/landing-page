@@ -48,6 +48,19 @@ export function Footer() {
             <p className="mt-4 text-xs leading-relaxed text-slate-500">
               Architecture-aware guardrails for AI-assisted development.
             </p>
+            <a href="https://www.producthunt.com/products/cxgrd?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-cxgrd" target="_blank" rel="noopener noreferrer" className="inline-block mt-16">
+              <img alt="CXGRD - Automated Architectural Guardrail for AI native development | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1170648&amp;theme=dark&amp;t=1783762669953"/>
+            </a>
+            <a href="https://orynth.dev/projects/cxgrd" target="_blank" rel="noopener">
+              <img src="https://orynth.dev/api/badge/cxgrd?theme=dark&style=minimal" alt="Featured on Orynth" width="152" height="48" className="mt-4"/>
+            </a>
+            <a href="https://peerlist.io/manan140306/project/cxgrd" target="_blank" rel="noreferrer">
+              <img
+                src="https://peerlist.io/api/v1/projects/embed/PRJHQ7MQ8JGOKBRJJI6G7EBPAD7PEG?showUpvote=false&theme=dark"
+                alt="Peerlist Badge"
+                className="mt-4"
+              />
+            </a>
           </div>
 
           {/* Link columns */}

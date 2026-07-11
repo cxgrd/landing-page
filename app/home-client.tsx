@@ -130,65 +130,80 @@ export default function HomeClient() {
       </header>
 
       <main className="mx-auto w-full max-w-6xl px-6 pb-24 pt-14 sm:pt-20 mt-0 sm:mt-4">
-        <section id="home" className="mx-auto max-w-4xl text-center">
-          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-4 py-2 text-xs font-medium text-blue-100">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Automated Architectural Guardrail for AI-Native Development
+
+        <section id="home" className="flex flex-col gap-12 md:flex-row md:items-center md:gap-16">
+
+          <div className="flex-1">
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-4 py-2 text-xs font-medium text-blue-100">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Automated Architectural Guardrail for AI-Native Development
+            </div>
+
+            <h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
+              Move fast with AI{" "}
+              <span className="animated-gradient-text bg-gradient-to-r from-blue-300 via-violet-300 to-cyan-300 bg-clip-text text-transparent">
+                without silently breaking your architecture
+              </span>
+            </h1>
+
+            <p className="mt-6 text-pretty text-base leading-relaxed text-slate-300">
+              <span className="font-semibold text-white">cxgrd</span> is a lightweight developer CLI that maps codebase
+              dependencies, computes downstream blast radius before sweeping AI edits, and checks generated diffs for
+              structural and logic risks before commit.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <a
+                href={githubLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
+                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.31.468-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222 0 1.606-.015 2.896-.015 3.286 0 .322.216.694.825.576C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z" />
+                </svg>
+                GitHub
+              </a>
+              <a
+                href="/docs/quickstart"
+                className="inline-flex items-center justify-center rounded-lg bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-100 transition hover:bg-blue-500/20"
+              >
+                Quickstart →
+              </a>
+            </div>
           </div>
 
-          <h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight text-white sm:text-6xl">
-            Move fast with AI{" "}
-            <br></br>
-            <span className="animated-gradient-text bg-gradient-to-r from-blue-300 via-violet-300 to-cyan-300 bg-clip-text text-transparent">
-              without silently breaking your architecture
-            </span>
-          </h1>
-
-          <p className="mx-auto mt-6 max-w-3xl text-pretty text-base leading-relaxed text-slate-300 sm:text-lg">
-            <span className="font-semibold text-white">cxgrd</span> is a lightweight developer CLI that maps codebase
-            dependencies, computes downstream blast radius before sweeping AI edits, and checks generated diffs for
-            structural and logic risks before commit.
-          </p>
-
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-300 sm:text-sm">
-            <span className="command-chip rounded-full px-3 py-1.5">AST graph intelligence</span>
-            <span className="command-chip rounded-full px-3 py-1.5">Persistent .cg/ repo memory</span>
-            <span className="command-chip rounded-full px-3 py-1.5">Compiler-backed validation</span>
-          </div>
-        </section>
-
-        <section id="install" className="mt-28 sm:mt-36">
-          <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Install CXGRD</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
-            Get started with CXGRD in minutes.
-          </p>
-          <div className="mt-8 grid gap-4 md:grid-cols-1">
-            <article className="feature-card glass-surface rounded-2xl p-6">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-blue-200">Install via npm</p>
-                  <pre className="mt-4 overflow-x-auto rounded bg-[#0a0f1a] p-4 text-left text-sm text-green-400">
-                    npm install -g cxgrd
+          <div className="flex-1 max-w-md w-full">
+            <div className="feature-card glass-surface rounded-2xl p-6">
+              <p className="text-s font-semibold uppercase tracking-widest text-blue-300 mb-4">Get started</p>
+              <div className="space-y-2">
+                {[
+                  "npm install -g cxgrd",
+                  "cxgrd scan",
+                  "cxgrd check --ci",
+                ].map((cmd) => (
+                  <pre key={cmd} className="rounded bg-[#0a0f1a] px-4 py-2 text-sm text-green-400">
+                    <span className="text-slate-500 select-none">$ </span>{cmd}
                   </pre>
-                </div>
+                ))}
+              </div>
+              <div className="mt-6 flex items-center gap-3">
                 <button
                   onClick={handleCopy}
                   className="inline-flex items-center justify-center rounded-lg bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-100 transition hover:bg-blue-500/20"
                 >
-                  {copied ? "Copied!" : "Copy"}
+                  {copied ? "Copied!" : "Copy install"}
                 </button>
-              </div>
-            </article>
-            
-          </div>
-            <div className="mt-6 flex ">
                 <a
-                    href="/docs"
-                    className="inline-flex items-center justify-center rounded-lg bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-100 transition hover:bg-blue-500/20"
+                  href="/docs"
+                  className="inline-flex items-center justify-center rounded-lg border border-white/10 px-4 py-2 text-sm font-medium text-slate-300 transition hover:text-white"
                 >
-                    Read the docs →
+                  Read the docs →
                 </a>
+              </div>
             </div>
+          </div>
+
         </section>
 
         <section id="watch-demo" className="mt-28 sm:mt-36">
