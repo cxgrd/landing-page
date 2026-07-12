@@ -18,7 +18,7 @@
     "nextra": "^4.6.1",
     "nextra-theme-docs": "^4.6.1",
     "pg": "^8.11.0",
-    "posthog-js": "^1.383.2",
+    "posthog-js": "^1.399.2",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "rehype-highlight": "^7.0.2",
