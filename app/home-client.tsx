@@ -214,7 +214,7 @@ export default function HomeClient() {
           <div className="mt-8 flex justify-center">
             <iframe
               className="aspect-video w-full max-w-4xl rounded-xl border border-white/10"
-              src="https://www.youtube.com/embed/boxXIXMDHYc?rel=0"
+              src="https://www.youtube-nocookie.com/embed/boxXIXMDHYc?rel=0"
               title="CXGRD demo video"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
