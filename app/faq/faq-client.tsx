@@ -135,6 +135,13 @@ export default function FAQClient() {
               )
             })}
           </div>
+
+          <p className="mx-auto mt-12 max-w-3xl text-pretty text-base leading-relaxed text-slate-300 sm:text-lg">
+            Still got questions? <a href="mailto:hello@cxgrd.com" className="text-cyan-400 hover:text-cyan-300">
+              Contact Us
+            </a>
+          </p>
+
         </section>
       </main>
       <Footer />

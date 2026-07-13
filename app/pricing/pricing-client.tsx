@@ -140,7 +140,6 @@ export default function PricingClient() {
             <a href="/changelog" className="transition-colors hover:text-white">Changelog</a>
             <a href="/faq" className="font-medium transition-colors hover:text-white">FAQs</a>
             
-            <a href="https://cxgrd.com/docs" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-white">Docs</a>
           </nav>
 
         </div>
@@ -220,7 +219,7 @@ export default function PricingClient() {
             For enterprise deployments, SSO, and custom integrations, let's talk.
           </p>
           <a
-            href="mailto:hello@cxgrd.com"
+            // href="mailto:hello@cxgrd.com"
             className="mt-6 inline-flex items-center gap-2 rounded-lg border border-white/15 px-6 py-3 text-sm font-medium text-slate-200 transition-all duration-300 hover:border-blue-300/60 hover:text-white hover:shadow-lg hover:shadow-blue-500/20"
           >
             Coming soon
