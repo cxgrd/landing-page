@@ -1,0 +1,70 @@
+# Prevent AI Code From Breaking Types in a Monorepo
+
+## The problem
+
+In a monorepo, a shared type or interface can be imported across dozens of packages. When an AI coding assistant changes a type — narrowing a field, 
+renaming a property, adjusting a generic — it typically only sees the file it's editing and maybe a few files pulled into its context window. It has 
+no visibility into every downstream package that imports and depends on that type.
+
+The result: a change compiles fine in the package where the AI made it, but breaks type checks or runtime assumptions three packages away — often not 
+caught until CI runs on the full monorepo, or worse, after merge.
+
+## Why this happens
+
+AI coding assistants work within a context window. Even well-configured tools like Cursor or Claude Code only load the files relevant to the immediate 
+task, not your entire dependency graph. A shared `types.ts` file might be imported by 40 files across 8 packages, but the assistant reasoning about a 
+single feature branch has no built-in mechanism to know that, or to check all 40 usages before proposing a change.
+
+This isn't a flaw in the AI tools themselves — it's a structural limitation of working from a diff or a task-scoped context, rather than the whole 
+codebase's dependency structure.
+
+## How CXGRD solves it
+
+CXGRD builds a dependency graph of your monorepo — every import and cross-package reference — independent of any single AI tool's context window. When 
+a PR changes a shared type, CXGRD traces every file across every package that imports it, and reports the full blast radius before merge:
+
+```bash
+$ cxgrd scan
+📊 Building dependency graph...
+   Total dependencies: 160
+   Languages: typescript(20), json(2)
+✓ Scan complete!
+✓ Updated .cg/ (graph, symbols, arch, patterns, memory)
+
+$ cxgrd input "removing oauth.py"
+ℹ  Analyzing change: "removing oauth.py"
+ℹ  Detected 2 changed file(s)
+
+▶ Impact Summary
+────────────────
+   Overall Risk:  MEDIUM
+   Risk Score: 28/100
+   [██████░░░░░░░░░░░░░░] 28%
+
+▶ Affected Files
+────────────────
+   Direct impact: 1 file(s)
+   Transitive impact: 8 file(s)
+   Total affected: 9 file(s)
+   Top affected files:
+    CRITICAL  app/github_client.py
+      └─ Depends on auth.py (direct)
+    HIGH  app/analyzer/static.py
+      └─ Depends on github_client.py (transitive, depth: 2)
+```
+
+Wired into CI, this becomes a merge gate: a PR that changes a shared type and exceeds the blast radius can be blocked or flagged for review, 
+regardless of which package the diff originated in or which AI tool wrote it.
+
+## Setting it up
+
+1. Install: `npm install -g cxgrd`
+2. Point CXGRD at your monorepo root so it can build the full cross-package graph.
+3. Add a [merge policy](/docs/merge-policies) on the dashboard with a blast radius threshold appropriate for your shared/core packages.
+4. Add `cxgrd check --ci` to your CI pipeline.
+
+## Related
+
+- [Merge Policies](/docs/merge-policies)
+- [Deterministic Analysis vs. AI Agents](/docs/ai-vs-cxgrd)
+- [cxgrd check](/docs/commands/check)

@@ -1,0 +1,37 @@
+# Prevent AI hallucinations
+
+## The problem
+
+When AI coding tools are given a task - feature implementation or fixing a bug - it scans all the files edited in that particular coding session only,
+and ignores everything else. Which means, if it finds some type declarations or function definitions to be missing, in those edited files, it will write
+them from scratch. Although these definitions were somewhere written clearly in the codebase.
+
+This also happens when AI doesn't know about the package.json file. It can use syntax and imports from NextJS v10 without knowing, that the project uses
+NextJS v16. 
+
+This results in outdated types, deprecated imports and modules which eventually cause failed builds.
+
+## How CXGRD solves this 
+
+CXGRD performs compiler verifications after every implemented change. It catches missing and circular imports, type and syntax errors, and 
+orphaned files. 
+
+```bash
+$ cxgrd check
+✓ Running cxgrd check...
+   Structural analysis...
+   Compiler verification (TypeScript, Python, Rust)...
+   Compiler runs:
+     · typescript (typescript @ .): ok — 0 errors, 0 warnings
+     · python (pyright @ .): skipped — pyright not found on PATH (install with: pip install pyright)
+   ⚠ Skipped compiler(s) for: python — not counted as failures.
+     Use --strict or run `cxgrd doctor` to fix your toolchain.
+✓ All checks passed!
+   Scope: full project · Mode: permissive · 0 errors (0 structural, 0 compiler) · 0 warnings
+```
+
+These compiler backed checks serve as concrete analysis for more accurate and clean code.
+
+## Related
+- [cxgrd check](/docs/commands/check)
+- [cxgrd doctor](/docs/commands/doctor)
