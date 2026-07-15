@@ -17,7 +17,6 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Override Termly privacy policy colors for dark background */
 [data-custom-class='link'],
 [data-custom-class='link'] * {
   color: #ffffff !important;

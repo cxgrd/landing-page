@@ -8,6 +8,7 @@ import { useState } from "react";
 const DODO_PRO_CHECKOUT_URL = "https://checkout.dodopayments.com/buy/pdt_0Ng6EAXoE8ybCQmeyWYtB";
 
 import type { Metadata } from 'next';
+import { SolutionsNav } from "@/components/solutionNav";
 
 export const metadata: Metadata = {
   title: 'Pricing — CXGRD',
@@ -137,7 +138,7 @@ export default function PricingClient() {
             <a href="/#how-it-works" className="transition-colors hover:text-white">How it works</a>
             <a href="/pricing" className="font-medium transition-colors hover:text-white">Pricing</a>
             <a href="/docs" className="transition-colors hover:text-white">Docs</a>
-            <a href="/changelog" className="transition-colors hover:text-white">Changelog</a>
+            <SolutionsNav />  
             <a href="/faq" className="font-medium transition-colors hover:text-white">FAQs</a>
             
           </nav>

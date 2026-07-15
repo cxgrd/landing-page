@@ -8,7 +8,8 @@ import { Footer } from '@/components/Footer'
 
 const nav = [
   { title: 'Prevent AI Code From Breaking Types in a Monorepo', href: '/solutions/pacbtm' },
-  { title: 'Preventing AI Hallucinations', href: '/solutions/ai-hallucinations' }
+  { title: 'AI Hallucinations', href: '/solutions/ai-hallucinations' },
+  { title: 'Reviewing AI Pull Requests at Scale', href: '/solutions/review-ai-pr' }
 ]
 
 export default function SolLayoutClient({ children }: { children: React.ReactNode }) {

@@ -31,7 +31,7 @@ const nav = [
 export default function DocsLayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [commandsOpen, setCommandsOpen] = useState(
-    pathname.startsWith('/docs/commands')
+    true || pathname.startsWith('/docs/commands')
   )
 
   return (

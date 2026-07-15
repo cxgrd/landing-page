@@ -1,0 +1,26 @@
+# Reviewing AI generated PRs at org level
+
+## The problem
+
+Before AI agents, a team merged maybe 5-10 PRs a day, and a senior engineer could hold "what does this touch" in their head. Now teams are seeing 3-5x 
+that volume. The bottleneck isn't reviewing code quality anymore — linters and type checkers handle that. The bottleneck is impact triage: which of 
+these 40 PRs today actually touch something risky, and which are safe to fast-track? A human can't manually trace dependency graphs at that volume. 
+
+This is not a judgment problem (reviewing code), it is a computation problem — which is exactly what should be automated, not left to reviewer fatigue.
+
+The traditional review methods - a human tracing "what does this change affect" on many PRs every day - won't work now. This is what failure mode blast
+radius analysis exists to remove.
+
+## How CXGRD helps
+
+CXGRD implements auto-triage. It automatically calculates blast radius for changes done in every PR and flags them with tags like critical, high, medium 
+and low. PRs with low risk move fast, whereas, the ones with critical or high risk are flagged for real human attention. What gets reviewed at scale is 
+not the change, but the risk. 
+
+But this does not replace linting and type checking and actual code correctness still matter. CXGRD itself uses the compilers to verify the correctness 
+of code.
+
+## Related
+
+- [Merge Policies](/docs/merge-policies)
+- [Teams](/docs/team)

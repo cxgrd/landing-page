@@ -1,8 +1,8 @@
 import Image from "next/image";
-import Link from "next/link";
 import { Footer } from "@/components/Footer";
 
 import type { Metadata } from 'next';
+import { SolutionsNav } from "@/components/solutionNav";
 
 export const metadata: Metadata = {
   title: 'Changelog - CXGRD',
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 const releases = [
   {
-    version: "v0.1.34",
+    version: "v0.1.36",
     date: "July 6, 2026",
     badge: "latest",
     badgeColor: "emerald",
@@ -21,6 +21,7 @@ const releases = [
       { type: "improved", text: "Github callback now sets cookie after CLI auth" },
       { type: "new", text: "Added FAQ page and Demo video" },
       { type: "new", text: "Added new docs page for Deterministic Analysis vs. AI Agents and merge policies" },
+      { type: "new", text: "Added Solutions pages " },
     ],
   },
   {
@@ -234,7 +235,7 @@ export default function ChangelogPage() {
             <a href="/#how-it-works" className="transition-colors hover:text-white">How it works</a>
             <a href="/pricing" className="font-medium transition-colors hover:text-white">Pricing</a>
             <a href="/docs" className="transition-colors hover:text-white">Docs</a>
-            <a href="/changelog" className="transition-colors hover:text-white">Changelog</a>
+            <SolutionsNav />
             <a href="/faq" className="font-medium transition-colors hover:text-white">FAQs</a>
           </nav>
         </div>

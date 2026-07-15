@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Footer } from "@/components/Footer";
 import { UserNav } from "@/components/useNav";
+import { SolutionsNav } from "@/components/solutionNav";
 
 
 const capabilities = [
@@ -121,7 +122,7 @@ export default function HomeClient() {
             <a href="/#how-it-works" className="transition-colors hover:text-white">How it works</a>
             <a href="/pricing" className="font-medium transition-colors hover:text-white">Pricing</a>
             <a href="/docs" className="transition-colors hover:text-white">Docs</a>
-            <a href="/changelog" className="transition-colors hover:text-white">Changelog</a>
+            <SolutionsNav />
             <a href="/faq" className="font-medium transition-colors hover:text-white">FAQs</a>
           </nav>
 
