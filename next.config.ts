@@ -5,7 +5,7 @@ const nextConfig : NextConfig = {
   async headers() {
     return [
       {
-        source: '/:path*',
+        source: '/(.*)',
         headers: [
           {
             key: 'Content-Security-Policy',
@@ -41,5 +41,4 @@ const nextConfig : NextConfig = {
   },
 };
 
-module.exports = nextConfig;
 export default nextConfig;
