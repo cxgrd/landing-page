@@ -26,6 +26,9 @@ export default function sitemap() : MetadataRoute.Sitemap {
     '/legal/privacy',
     '/legal/terms',
     '/legal/refund',
+    '/solutions/pacbtm',
+    '/solutions/review-ai-pr',
+    '/solutions/ai-hallucinations',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
