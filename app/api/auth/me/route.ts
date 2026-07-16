@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   }
 
   const claims = verifyAuthToken(token);
-  console.log('Auth token claims:', claims);
+  // console.log('Auth token claims:', claims);
   if (!claims) {
     // Cookie exists but token is expired or invalid — clear it
     const res = NextResponse.json({ authenticated: false }, { status: 401 });
