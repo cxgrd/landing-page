@@ -8,7 +8,7 @@ import { Footer } from '@/components/Footer'
 
 const nav = [
   { title: 'Introduction', href: '/docs' },
-  { title: 'Quickstart', href: '/docs/quickstart' },
+  { title: 'Quickstart', href: '/docs/get-started' },
   {
     title: 'Commands',
     children: [

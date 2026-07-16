@@ -8,7 +8,7 @@ export default function sitemap() : MetadataRoute.Sitemap {
     '/about',
     '/changelog',
     '/docs',
-    '/docs/quickstart',
+    '/docs/get-started',
     '/docs/team',
     '/docs/commands/auth-login',
     '/docs/commands/check',

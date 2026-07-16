@@ -9,16 +9,16 @@ import { SolutionsNav } from "@/components/solutionNav";
 
 const capabilities = [
   {
-    title: "Persistent dependency memory",
+    title: ".cg/ - the memory your AI agents don't have",
     description:
-      "CXGRD writes structural intelligence to a local .cg/ folder so your architecture context survives across AI sessions.",
-    detail: ".cg/graph.json · symbols.json · arch.json · history.json",
+      "Every new AI session starts from zero. Yours doesn't have to. cxgrd builds a .cg/ folder, your codebase's memory",
+    detail: "No re-explaining your architecture to the agent every session.",
   },
   {
-    title: "Blast radius before edits",
+    title: "See what breaks before you prompt",
     description:
-      "Before prompting AI to change code, CXGRD shows what modules, schemas, and APIs will be impacted downstream.",
-    detail: "Unlike session-level AI guardrails, blast radius analysis persists across tools and sessions",
+      "Most review tools tell you what broke after the AI already wrote the diff. cxgrd shows you what will break before you even send the prompt",
+    detail: "Steer the agent instead of cleaning up after it.",
   },
   {
     title: "Prompt enrichment for coding agents",
@@ -27,10 +27,10 @@ const capabilities = [
     detail: "Improves AI output quality on large codebases",
   },
   {
-    title: "Compiler-backed guardrails",
+    title: "A compiler check, not a second AI",
     description:
-      "Check AI-generated diffs for logic gaps, missing imports, and dependency breakage before shipping to production.",
-    detail: "Designed for safe, high-velocity AI-native workflows",
+      "Compilers verify every AI-generated diff—not another AI guessing whether the first one got it right.",
+    detail: "If it doesn't compile clean, it doesn't ship",
   },
 ];
 
@@ -77,7 +77,7 @@ const architecture = [
 ];
 
 export default function HomeClient() {
-  const githubLink = process.env.GITHUB_ORG_LINK || "https://github.com";
+  const githubLink = process.env.GITHUB_ORG_LINK || "https://github.com/cxgrd";
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -132,25 +132,24 @@ export default function HomeClient() {
 
       <main className="mx-auto w-full max-w-6xl px-6 pb-24 pt-14 sm:pt-20 mt-0 sm:mt-4">
 
-        <section id="home" className="flex flex-col gap-12 md:flex-row md:items-center md:gap-16">
+        <section id="home" className="mt-18 flex flex-col gap-12 md:flex-row md:items-center md:gap-18">
 
           <div className="flex-1">
-            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-4 py-2 text-xs font-medium text-blue-100">
+            {/* <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-4 py-2 text-xs font-medium text-blue-100">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
               Automated Architectural Guardrail for AI-Native Development
-            </div>
+            </div> */}
 
             <h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
-              Move fast with AI{" "}
+              Your AI agent's edit{" "}
               <span className="animated-gradient-text bg-gradient-to-r from-blue-300 via-violet-300 to-cyan-300 bg-clip-text text-transparent">
-                without silently breaking your architecture
+                looked fine, until it wasn't
               </span>
             </h1>
 
             <p className="mt-6 text-pretty text-base leading-relaxed text-slate-300">
-              <span className="font-semibold text-white">cxgrd</span> is a lightweight developer CLI that maps codebase
-              dependencies, computes downstream blast radius before sweeping AI edits, and checks generated diffs for
-              structural and logic risks before commit.
+              <span className="font-semibold text-white">cxgrd</span> gives Cursor, Claude Code, and Windsurf a memory of your codebase, so it catches
+              the breakage three files away—before you commit, not after you ship. Free to start, one command to install.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -166,17 +165,17 @@ export default function HomeClient() {
                 GitHub
               </a>
               <a
-                href="/docs/quickstart"
+                href="/docs/get-started"
                 className="inline-flex items-center justify-center rounded-lg bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-100 transition hover:bg-blue-500/20"
               >
-                Quickstart →
+                Get started →
               </a>
             </div>
           </div>
 
           <div className="flex-1 max-w-md w-full">
             <div className="feature-card glass-surface rounded-2xl p-6">
-              <p className="text-s font-semibold uppercase tracking-widest text-blue-300 mb-4">Get started</p>
+              <p className="text-s font-semibold uppercase tracking-widest text-blue-300 mb-4">Install for free</p>
               <div className="space-y-2">
                 {[
                   "npm install -g cxgrd",
@@ -207,9 +206,9 @@ export default function HomeClient() {
 
         </section>
 
-        <section id="watch-demo" className="mt-28 sm:mt-36">
+        <section id="watch-demo" className="mt-38 sm:mt-36">
           <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">See it in action</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
+          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
             See CXGRD in action with this quick walkthrough.
           </p>
           <div className="mt-8 flex justify-center">
@@ -226,7 +225,7 @@ export default function HomeClient() {
         <section id="not-another" className="mt-28 sm:mt-36 flex flex-col items-center gap-10 md:flex-row">
           <div className="mb-8">
             <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Not another agent guardrail</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
+            <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
               Cursor, Claude Code and other tools guard what the AI does in your editor — permissions, hooks,
               rules, one session at a time. CXGRD guards what actually merges — dependency-graph-aware, enforced 
               org-wide, regardless of which tool or person wrote the code.
@@ -246,12 +245,12 @@ export default function HomeClient() {
         <section id="why" className="mt-28 sm:mt-36">
           <div className="mb-8">
             <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Why teams are interested</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
+            <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
               AI coding tools are fast, but they are often stateless and context-limited. CXGRD adds architectural
               memory and dependency-aware safety checks so velocity does not come at the cost of production stability.
             </p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="mt-15 grid gap-4 sm:grid-cols-2">
             {capabilities.map((item) => (
               <article key={item.title} className="feature-card glass-surface rounded-2xl p-6">
                 <h3 className="text-lg font-semibold text-white">{item.title}</h3>
@@ -265,11 +264,11 @@ export default function HomeClient() {
         <section id="how-it-works" className="mt-28 sm:mt-36">
           <div className="mb-8">
             <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">How CXGRD works</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
+            <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
               A command-first flow that fits naturally into modern AI-assisted coding loops.
             </p>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="mt-15 grid gap-4 md:grid-cols-2">
             {commandFlow.map((step) => (
               <article key={step.command} className="feature-card glass-surface rounded-2xl p-6">
                 <p className="text-sm font-semibold text-blue-200">{step.command}</p>
@@ -282,10 +281,10 @@ export default function HomeClient() {
 
         <section id="architecture" className="mt-28 sm:mt-36">
           <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Architecture</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
+          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
             A lightweight TypeScript CLI paired with a cloud backend — no native dependencies, works anywhere Node runs.
           </p>
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
+          <div className="mt-15 grid gap-4 md:grid-cols-2">
             {architecture.map((layer) => (
               <article key={layer.title} className="feature-card glass-surface rounded-2xl p-6">
                 <h3 className="text-lg font-semibold text-white">{layer.title}</h3>
