@@ -15,7 +15,7 @@ const nextConfig : NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "font-src 'self' data:",
-              "connect-src 'self' https://us.i.posthog.com https://*.supabase.co https://api.groq.com",
+              "connect-src 'self' https://us.i.posthog.com https://api.groq.com https://*.supabase.co",
               "frame-ancestors 'none'",
             ].join('; '),
           },
