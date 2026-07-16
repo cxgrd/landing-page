@@ -30,6 +30,7 @@ const nextConfig = {
               "img-src 'self' data: https:",
               "font-src 'self' data:",
               "connect-src 'self' https://us.i.posthog.com https://api.groq.com https://*.supabase.co",
+              "frame-src 'self' https://youtube-nocookie.com",
               "frame-ancestors 'none'",
             ].join('; '),
           },
