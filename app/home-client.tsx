@@ -132,7 +132,7 @@ export default function HomeClient() {
 
       <main className="mx-auto w-full max-w-6xl px-6 pb-24 pt-14 sm:pt-20 mt-0 sm:mt-4">
 
-        <section id="home" className="mt-18 flex flex-col gap-12 md:flex-row md:items-center md:gap-18">
+        <section id="home" className="mt-16 flex flex-col gap-12 md:flex-row md:items-center md:gap-18">
 
           <div className="flex-1">
             {/* <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-4 py-2 text-xs font-medium text-blue-100">
@@ -148,8 +148,9 @@ export default function HomeClient() {
             </h1>
 
             <p className="mt-6 text-pretty text-base leading-relaxed text-slate-300">
-              <span className="font-semibold text-white">cxgrd</span> gives Cursor, Claude Code, and Windsurf a memory of your codebase, so it catches
-              the breakage three files away—before you commit, not after you ship. Free to start, one command to install.
+              <span className="font-semibold text-white">cxgrd</span> gives you AI coding tools-Cursor, Claude Code, or Windsurf a memory of your codebase, 
+              so it catches the breakage three files away—before you commit, not after you ship. <br/>
+              Free to start, one command to install.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
