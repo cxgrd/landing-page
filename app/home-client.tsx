@@ -76,9 +76,17 @@ const architecture = [
   },
 ];
 
+const mobileNavLinks = [
+  { href: "/#how-it-works", label: "How it works" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/docs", label: "Docs" },
+  { href: "/faq", label: "FAQs" },
+];
+
 export default function HomeClient() {
   const githubLink = process.env.GITHUB_ORG_LINK || "https://github.com/cxgrd";
   const [copied, setCopied] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleCopy = async () => {
     try {
@@ -118,16 +126,67 @@ export default function HomeClient() {
             </div>
           </a>
 
-          <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
-            <a href="/#how-it-works" className="transition-colors hover:text-white">How it works</a>
-            <a href="/pricing" className="font-medium transition-colors hover:text-white">Pricing</a>
-            <a href="/docs" className="transition-colors hover:text-white">Docs</a>
-            <SolutionsNav />
-            <a href="/faq" className="font-medium transition-colors hover:text-white">FAQs</a>
-          </nav>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10 md:hidden"
+              aria-label="Toggle navigation menu"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              <span className="sr-only">Toggle menu</span>
+              <div className="flex flex-col gap-1.5">
+                <span className="block h-0.5 w-4 rounded-full bg-current" />
+                <span className="block h-0.5 w-4 rounded-full bg-current" />
+                <span className="block h-0.5 w-4 rounded-full bg-current" />
+              </div>
+            </button>
 
-          <UserNav githublink={githubLink} />
+            <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
+              <a href="/#how-it-works" className="transition-colors hover:text-white">How it works</a>
+              <a href="/pricing" className="font-medium transition-colors hover:text-white">Pricing</a>
+              <a href="/docs" className="transition-colors hover:text-white">Docs</a>
+              <SolutionsNav />
+              <a href="/faq" className="font-medium transition-colors hover:text-white">FAQs</a>
+            </nav>
+
+            <UserNav githublink={githubLink} />
+          </div>
         </div>
+
+        {menuOpen && (
+          <div className="border-t border-white/10 bg-[#05070f]/95 md:hidden">
+            <nav className="mx-auto flex max-w-6xl flex-col gap-2 px-6 py-4 text-sm text-slate-300">
+              {mobileNavLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="rounded-lg px-3 py-2 transition hover:bg-white/5 hover:text-white"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {link.label}
+                </a>
+              ))}
+
+              <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-3">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-300">
+                  Solutions
+                </p>
+                <div className="flex flex-col gap-1">
+                  <a href="/solutions/pacbtm" className="rounded px-2 py-1.5 hover:bg-white/5 hover:text-white" onClick={() => setMenuOpen(false)}>
+                    Monorepo Type Safety
+                  </a>
+                  <a href="/solutions/review-ai-pr" className="rounded px-2 py-1.5 hover:bg-white/5 hover:text-white" onClick={() => setMenuOpen(false)}>
+                    AI-Generated PR Review at Scale
+                  </a>
+                  <a href="/solutions/ai-hallucinations" className="rounded px-2 py-1.5 hover:bg-white/5 hover:text-white" onClick={() => setMenuOpen(false)}>
+                    AI Hallucinations
+                  </a>
+                </div>
+              </div>
+            </nav>
+          </div>
+        )}
       </header>
 
       <main className="mx-auto w-full max-w-6xl px-6 pb-24 pt-14 sm:pt-20 mt-0 sm:mt-4">
