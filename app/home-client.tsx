@@ -207,7 +207,7 @@ export default function HomeClient() {
             </h1>
 
             <p className="mt-6 text-pretty text-base leading-relaxed text-slate-300">
-              <span className="font-semibold text-white">cxgrd</span> gives you AI coding tools-Cursor, Claude Code, or Windsurf a memory of your codebase, 
+              <span className="font-semibold text-white">cxgrd</span> gives your AI coding tools-Cursor, Claude Code, or Windsurf a memory of your codebase, 
               so it catches the breakage three files away—before you commit, not after you ship. <br/>
               Free to start, one command to install.
             </p>
