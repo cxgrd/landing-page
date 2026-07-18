@@ -22,7 +22,7 @@ export function UserNav({githublink} : {githublink : string}) {
           alt={user.login}
           width={32}
           height={32}
-          style={{ borderRadius: '50%', border: '2px solid rgba(148,163,184,0.2)', cursor: 'pointer', padding: '4px' }}
+          style={{ borderRadius: '50%', border: '2px solid rgba(148,163,184,0.2)', cursor: 'pointer' }}
         />
       </a>
     );
