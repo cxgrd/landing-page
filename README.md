@@ -35,7 +35,6 @@ website/
 ├    └──changelog/             # changelog page
 ├    └──checkout/              # checkout page placeholder (no more in use)
 ├    └──dashboard/             # team dashboard page
-├    └──docs/                  # documentation for cxgrd
 ├    └──legal/                 # PP, T&C and Refund policy pages
 ├    └──pricing/               # pricing information page 
 ├    └──status/                # health route for status page

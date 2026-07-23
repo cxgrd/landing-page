@@ -41,7 +41,7 @@ export default function CheckoutPage() {
               Pricing
             </a>
             <a 
-              href="https://cxgrd.com/docs" 
+              href="https://docs.cxgrd.com" 
               target="_blank" 
               rel="noopener noreferrer"
               className="transition-colors hover:text-white"
