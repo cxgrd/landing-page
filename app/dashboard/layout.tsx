@@ -32,9 +32,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <span style={{ fontSize: '13px', color: '#94a3b8', fontFamily: 'var(--font-geist-mono)' }}>dashboard</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <a href="/docs" style={{ fontSize: '12px', color: '#64748b', textDecoration: 'none' }}>Docs</a>
+          <a href="https://docs.cxgrd.com" style={{ fontSize: '12px', color: '#64748b', textDecoration: 'none' }}>Docs</a>
           <p>|</p>
-          <a href="/docs/merge-policies" style={{ fontSize: '12px', color: '#64748b', textDecoration: 'none' }}>How Merge Policies work</a>
+          <a href="https://docs.cxgrd.com/merge-policies" style={{ fontSize: '12px', color: '#64748b', textDecoration: 'none' }}>How Merge Policies work</a>
         </div>
       </header>
       <main style={{ flex: 1 }}>

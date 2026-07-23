@@ -15,7 +15,7 @@ const nav = [
 export default function SolLayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [commandsOpen, setCommandsOpen] = useState(
-    pathname.startsWith('/docs/commands')
+    pathname.startsWith('https://docs.cxgrd.com/commands')
   )
 
   return (
