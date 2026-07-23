@@ -227,7 +227,7 @@ export default function HomeClient() {
                 GitHub
               </a>
               <a
-                href="/docs/get-started"
+                href="https://docs.cxgrd.com"
                 className="inline-flex items-center justify-center rounded-lg bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-100 transition hover:bg-blue-500/20"
               >
                 Get started →
@@ -257,7 +257,7 @@ export default function HomeClient() {
                   {copied ? "Copied!" : "Copy install"}
                 </button>
                 <a
-                  href="/docs"
+                  href="https://docs.cxgrd.com"
                   className="inline-flex items-center justify-center rounded-lg border border-white/10 px-4 py-2 text-sm font-medium text-slate-300 transition hover:text-white"
                 >
                   Read the docs →
