@@ -76,7 +76,9 @@ export default function FAQClient() {
         <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
             <a href="/#how-it-works" className="transition-colors hover:text-white">How it works</a>
             <a href="/pricing" className="font-medium transition-colors hover:text-white">Pricing</a>
-            <a href="/docs" className="transition-colors hover:text-white">Docs</a>
+            <a href="https://docs.cxgrd.com" className="transition-colors hover:text-white" target="_blank" rel="noopener noreferrer">
+              Docs
+            </a>
             <SolutionsNav />
             <a href="/faq" className="font-medium transition-colors hover:text-white">FAQs</a>
         </nav>
