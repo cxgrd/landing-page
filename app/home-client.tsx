@@ -209,8 +209,8 @@ export default function HomeClient() {
             </h1>
 
             <p className="mt-6 text-pretty text-base leading-relaxed text-slate-300">
-              <span className="font-semibold text-white">cxgrd</span> gives your AI coding tools—Cursor/Claude Code/Windsurf a map of your codebase, 
-              so it won't break something three files away—before you commit, not after you ship. <br/>
+              <span className="font-semibold text-white">cxgrd</span> gives your AI coding tools — Cursor/Claude Code/Windsurf — a map of your codebase, 
+              so they can avoid breaking something three files away.<br/>
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
