@@ -12,10 +12,19 @@ export const metadata: Metadata = {
 
 const releases = [
   {
-    version: "v0.1.36",
-    date: "July 6, 2026",
+    version: "v0.1.37",
+    date: "August 2, 2026",
     badge: "latest",
     badgeColor: "emerald",
+    changes: [
+      { type: "improved", text: "removed broken files filter from getGitStatus" },
+    ],
+  },
+  {
+    version: "v0.1.36",
+    date: "July 6, 2026",
+    badge: null,
+    badgeColor: null,
     changes: [
       { type: "improved", text: "Added route to delete cookie when user logs out" },
       { type: "improved", text: "Github callback now sets cookie after CLI auth" },
