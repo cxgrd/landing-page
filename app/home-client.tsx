@@ -79,7 +79,7 @@ const architecture = [
 const mobileNavLinks = [
   { href: "/#how-it-works", label: "How it works" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/docs", label: "Docs" },
+  { href: "https://docs.cxgrd.com", label: "Docs" },
   { href: "/faq", label: "FAQs" },
 ];
 
