@@ -13,6 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://cxgrd.com"),
+
   title: "CXGRD | AI Architectural Guardrail for Your Codebase",
   description: "Automated architectural guardrail that maps dependencies and calculates blast radius before AI makes changes. Move fast without breaking your architecture.",
   icons: {
@@ -39,6 +41,9 @@ export const metadata: Metadata = {
     description: "Automated architectural guardrail that maps dependencies and calculates blast radius before AI makes changes. Move fast without breaking your architecture.",
     images: ["https://cxgrd.com/Homepage.png"],
   },
+  alternates: {
+    canonical: "/",
+  }
 };
 
 export default function RootLayout({

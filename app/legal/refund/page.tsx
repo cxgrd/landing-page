@@ -2,8 +2,12 @@ import { Footer } from '@/components/Footer';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://cxgrd.com"),
   title: 'Refund Policy — CXGRD',
   description: 'CXGRD Refund Policy — Learn about our refund and cancellation policy for subscriptions. Understand the eligibility criteria and how to request a refund.',
+  alternates: {
+    canonical: "/legal/refund",
+  }
 };
 
 const Section = ({ id, title, children }: { id: string; title: string; children: React.ReactNode }) => (

@@ -1,8 +1,12 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://cxgrd.com"),
   title: 'About — CXGRD',
   description: 'Learn about the story behind CXGRD, the person who built it, and the philosophy that guides its development.',
+  alternates: {
+    canonical: "/about",
+  }
 };
 
 const Section = ({ id, title, children }: { id: string; title: string; children: React.ReactNode }) => (
