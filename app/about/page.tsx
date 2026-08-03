@@ -109,7 +109,7 @@ export default function AboutPage() {
           </P>
         </Section>
 
-        <Link href="https://cxgrd.com/#install">Give CXGRD a spin</Link>
+        <Link href="https://docs.cxgrd.com/get-started">Give CXGRD a spin</Link>
         
       </div>
     </div>
