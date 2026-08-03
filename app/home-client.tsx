@@ -359,6 +359,11 @@ export default function HomeClient() {
               </article>
             ))}
           </div>
+
+          <p className="mt-7 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
+            See the architectural diagram <a href="https://docs.cxgrd.com/architecture" className="text-blue-300 hover:text-blue-400">here.</a>
+          </p>
+
         </section>
       </main>
 
