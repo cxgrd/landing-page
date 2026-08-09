@@ -2,7 +2,7 @@ import { Footer } from '@/components/Footer';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://cxgrd.com"),
+  metadataBase: new URL("https://www.cxgrd.com"),
   title: 'Terms & Conditions — CXGRD',
   description: 'CXGRD Terms & Conditions — Learn about our terms of service, user responsibilities, and legal agreements for using CXGRD. Understand your rights and obligations when using our platform.',
   alternates: {

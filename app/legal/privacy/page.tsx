@@ -2,7 +2,7 @@ import { Footer } from '@/components/Footer';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://cxgrd.com"),
+  metadataBase: new URL("https://www.cxgrd.com"),
   title: 'Privacy Policy — CXGRD',
   description: 'CXGRD Privacy Policy — Learn how we collect, use, and protect your information when you use our services. Your privacy is important to us.',
   alternates: {

@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://cxgrd.com"),
+  metadataBase: new URL("https://www.cxgrd.com"),
 
   title: "CXGRD | AI Architectural Guardrail for Your Codebase",
   description: "Automated architectural guardrail that maps dependencies and calculates blast radius before AI makes changes. Move fast without breaking your architecture.",
@@ -23,11 +23,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: "CXGRD | AI Architectural Guardrail for Your Codebase",
     description: "Automated architectural guardrail that maps dependencies and calculates blast radius before AI makes changes. Move fast without breaking your architecture.",
-    url: "https://cxgrd.com",
+    url: "https://www.cxgrd.com",
     siteName: "CXGRD",
     images: [
       {
-        url: "https://cxgrd.com/Homepage.png",
+        url: "https://www.cxgrd.com/Homepage.png",
         width: 1200,
         height: 630,
         alt: "CXGRD Logo",
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "CXGRD | AI Architectural Guardrail for Your Codebase",
     description: "Automated architectural guardrail that maps dependencies and calculates blast radius before AI makes changes. Move fast without breaking your architecture.",
-    images: ["https://cxgrd.com/Homepage.png"],
+    images: ["https://www.cxgrd.com/Homepage.png"],
   },
   alternates: {
     canonical: "/",

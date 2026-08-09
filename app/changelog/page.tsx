@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 import { SolutionsNav } from "@/components/solutionNav";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://cxgrd.com"),
+  metadataBase: new URL("https://www.cxgrd.com"),
   title: 'Changelog - CXGRD',
   description: 'Stay up to date with the latest changes and improvements to CXGRD.',
   alternates: {

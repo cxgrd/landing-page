@@ -3,11 +3,11 @@ import Link from "next/link";
 
 const footerLinks = {
   Product: [
-    { label: "How it works", href: "https://cxgrd.com/#how-it-works" },
-    { label: "Architecture", href: "https://cxgrd.com/#architecture" },
-    { label: "Pricing", href: "https://cxgrd.com/pricing" },
-    { label: "Changelog", href: "https://cxgrd.com/changelog" },
-    { label: "FAQs", href: "https://cxgrd.com/faq" },
+    { label: "How it works", href: "https://www.cxgrd.com/#how-it-works" },
+    { label: "Architecture", href: "https://www.cxgrd.com/#architecture" },
+    { label: "Pricing", href: "https://www.cxgrd.com/pricing" },
+    { label: "Changelog", href: "https://www.cxgrd.com/changelog" },
+    { label: "FAQs", href: "https://www.cxgrd.com/faq" },
   ],
   Commands: [
     { label: "cxgrd scan", href: "https://docs.cxgrd.com/commands/scan" },
@@ -26,11 +26,11 @@ const footerLinks = {
     { label: "Status", href: "https://stats.uptimerobot.com/f3AQQEDMx6" },
   ],
   Company: [
-    { label: "About", href: "https://cxgrd.com/about" },
+    { label: "About", href: "https://www.cxgrd.com/about" },
     { label: "Contact", href: "mailto:hello@cxgrd.com", external: true },
-    { label: "Privacy", href: "https://cxgrd.com/legal/privacy" },
-    { label: "Terms", href: "https://cxgrd.com/legal/terms" },
-    { label: "Refund Policy", href: "https://cxgrd.com/legal/refund" },
+    { label: "Privacy", href: "https://www.cxgrd.com/legal/privacy" },
+    { label: "Terms", href: "https://www.cxgrd.com/legal/terms" },
+    { label: "Refund Policy", href: "https://www.cxgrd.com/legal/refund" },
   ],
 };
 

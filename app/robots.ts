@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/', '/dashboard/', '/team/', '/billing/', '/auth/'],
     },
-    sitemap: 'https://cxgrd.com/sitemap.xml',
+    sitemap: 'https://www.cxgrd.com/sitemap.xml',
   }
 }
