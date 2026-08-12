@@ -642,7 +642,7 @@ export interface InviteTokenInfo {
 }
 
 function buildInviteUrl(teamId: string, token: string): string {
-  const siteUrl = process.env.SITE_URL ?? 'https://cxgrd.com';
+  const siteUrl = process.env.SITE_URL ?? 'https://www.cxgrd.com';
   return `${siteUrl}/team/invite?team=${teamId}&token=${token}`;
 }
 

@@ -88,7 +88,7 @@ export async function postCommitStatus(payload: CommitStatusPayload): Promise<vo
         state: payload.state,
         description: payload.description.slice(0, 140),
         context: 'cxgrd / merge policy',
-        target_url: payload.targetUrl ?? 'https://cxgrd.com/dashboard',
+        target_url: payload.targetUrl ?? 'https://www.cxgrd.com/dashboard',
       }),
     },
   );
