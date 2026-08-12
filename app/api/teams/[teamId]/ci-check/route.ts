@@ -109,7 +109,7 @@ export async function POST(
         installationId: installationId,
         state:          blocked ? 'failure' : 'success',
         description:    description.slice(0, 140),
-        targetUrl:      'https://cxgrd.com/dashboard',
+        targetUrl:      'https://www.cxgrd.com/dashboard',
       });
 
       return NextResponse.json({

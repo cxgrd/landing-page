@@ -39,7 +39,7 @@ export async function GET(
         memberCount: info.memberCount,
         seatsAvailable: info.seatsAvailable,
         expiresAt: info.expiresAt.toISOString(),
-        inviteUrl: `${process.env.SITE_URL ?? 'https://cxgrd.com'}/team/invite?team=${teamId}&token=${inviteToken}`,
+        inviteUrl: `${process.env.SITE_URL ?? 'https://www.cxgrd.com'}/team/invite?team=${teamId}&token=${inviteToken}`,
       });
     }
 
