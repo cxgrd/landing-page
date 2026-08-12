@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
         installationId,
         state: 'failure',
         description: reason,
-        targetUrl: 'https://cxgrd.com/dashboard',
+        targetUrl: 'https://www.cxgrd.com/dashboard',
       });
       return NextResponse.json({ ok: true, result: 'blocked', reason });
     }
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
       installationId,
       state: 'success',
       description: `cxgrd: ${changedFiles} files changed — within policy limits`,
-      targetUrl: 'https://cxgrd.com/dashboard',
+      targetUrl: 'https://www.cxgrd.com/dashboard',
     });
 
     return NextResponse.json({ ok: true, result: 'passed' });

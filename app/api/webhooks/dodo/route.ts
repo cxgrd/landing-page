@@ -6,7 +6,7 @@ import { Resend } from 'resend';
 
 const DODO_TEAM_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_CXGRD_TEAM_KEY ?? '';
 const resend = new Resend(process.env.RESEND_API_KEY);
-const SITE_URL = process.env.SITE_URL ?? 'https://cxgrd.com';
+const SITE_URL = process.env.SITE_URL ?? 'https://www.cxgrd.com';
 
 // ─── Signature verification ───────────────────────────────────────────────────
 
