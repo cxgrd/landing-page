@@ -16,10 +16,21 @@ export const metadata: Metadata = {
 
 const releases = [
   {
-    version: "v0.1.37",
-    date: "August 2, 2026",
+    version: "v0.1.42",
+    date: "August 15, 2026",
     badge: "latest",
     badgeColor: "emerald",
+    changes: [
+      { type: "improved", text: "improved error handling in commands' source files" },
+      { type: "new" , text: "new --json flag for check , scan and input commands to output results in JSON format" },
+      { type: "new", text: "switched to gpt-oss-120b because llama-3.3-70b-versatile is deprecated" }
+    ],
+  },
+  {
+    version: "v0.1.37",
+    date: "August 2, 2026",
+    badge: null,
+    badgeColor: null,
     changes: [
       { type: "improved", text: "removed broken files filter from getGitStatus" },
     ],

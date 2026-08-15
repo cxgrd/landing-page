@@ -59,7 +59,7 @@ Requirements:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'gpt-oss-120b',
         temperature: 0.3,
         max_tokens: 2048,
         messages: [
@@ -87,7 +87,7 @@ Requirements:
 
     return NextResponse.json({
       prompt: enrichedPrompt,
-      model: 'llama-3.3-70b-versatile',
+      model: 'gpt-oss-120b',
       provider: 'groq',
       usage: {
         input_tokens: data.usage?.prompt_tokens ?? 0,
