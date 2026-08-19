@@ -237,7 +237,7 @@ export default function HomeClient() {
           <div className="flex-1 max-w-md w-full">
             <div className="feature-card glass-surface rounded-2xl p-6">
               <p className="text-s font-semibold uppercase tracking-widest text-blue-300 mb-4">Install for free</p>
-              <p className="text-xs font-semibold tracking-widest text-grey-100 mb-4">v0.1.42</p>
+              <p className="text-xs font-semibold tracking-widest text-grey-100 mb-4">v0.1.44</p>
               <div className="space-y-2">
                 {[
                   "npm install -g cxgrd",

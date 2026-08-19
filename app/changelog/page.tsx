@@ -16,10 +16,19 @@ export const metadata: Metadata = {
 
 const releases = [
   {
-    version: "v0.1.42",
-    date: "August 15, 2026",
+    version: "v0.1.44",
+    date: "August 19, 2026",
     badge: "latest",
     badgeColor: "emerald",
+    changes: [
+      { type: "fixed", text: "fixed init-hooks echo command" }
+    ],
+  },
+  {
+    version: "v0.1.42",
+    date: "August 15, 2026",
+    badge: null,
+    badgeColor: null,
     changes: [
       { type: "improved", text: "improved error handling in commands' source files" },
       { type: "new" , text: "new --json flag for check , scan and input commands to output results in JSON format" },
