@@ -29,8 +29,6 @@ export default function CyclingHeroText({
   const prefersReducedMotion = useRef(false);
 
   useEffect(() => {
-    // Respect users who've asked for less motion — show a random
-    // static phrase instead of animating.
     prefersReducedMotion.current = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
@@ -45,20 +43,19 @@ export default function CyclingHeroText({
     let timeout: ReturnType<typeof setTimeout>;
 
     if (!isDeleting && displayText.length < current.length) {
-      // typing
       timeout = setTimeout(() => {
         setDisplayText(current.slice(0, displayText.length + 1));
       }, typingSpeedMs);
     } else if (!isDeleting && displayText.length === current.length) {
-      // pause at full phrase
+
       timeout = setTimeout(() => setIsDeleting(true), holdMs);
     } else if (isDeleting && displayText.length > 0) {
-      // deleting
+   
       timeout = setTimeout(() => {
         setDisplayText(current.slice(0, displayText.length - 1));
       }, deletingSpeedMs);
     } else if (isDeleting && displayText.length === 0) {
-      // move to next phrase
+    
       setIsDeleting(false);
       setPhraseIndex((prev) => (prev + 1) % phrases.length);
     }
