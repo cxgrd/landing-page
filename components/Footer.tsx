@@ -23,6 +23,7 @@ const footerLinks = {
     { label: "Documentation", href: "https://docs.cxgrd.com" },
     { label: "npm package", href: "https://npmjs.com/package/cxgrd", external: true },
     { label: "GitHub", href: "https://github.com/cxgrd", external: true },
+    { label: "GitHub Action", href: "https://github.com/marketplace/actions/cxgrd-blast-radius-check", external: true },
     { label: "Status", href: "https://stats.uptimerobot.com/f3AQQEDMx6" },
   ],
   Company: [
