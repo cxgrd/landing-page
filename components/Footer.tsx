@@ -108,6 +108,16 @@ export function Footer() {
           </p>
         </div>
       </div>
+
+      {/* Giant clipped wordmark */}
+      <div className="relative h-[9vw] min-h-[48px] max-h-[140px] overflow-hidden">
+        <h2
+          aria-hidden="true"
+          className="absolute left-1/2 top-0 -translate-x-1/2 select-none whitespace-nowrap text-[20vw] font-bold leading-none tracking-tight text-white/5 md:text-[16vw]"
+        >
+          CXGRD
+        </h2>
+      </div>
     </footer>
   );
 }
