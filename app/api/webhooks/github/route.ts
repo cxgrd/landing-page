@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
   }
 
   const { pull_request: pr, repository, installation } = payload;
-  const repoFullName = repository.full_name;       // e.g. "manan/cxgrd-cli"
+  const repoFullName = repository.full_name;       // e.g. "name/cxgrd-cli"
   const sha          = pr.head.sha;
   const installationId = installation?.id;
 
