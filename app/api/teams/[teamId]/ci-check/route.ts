@@ -57,7 +57,7 @@ export async function POST(
       summary?: string;
       // Optional — if provided we use it to post a GitHub commit status
       installationId?: number;
-      repoFullName?: string;   // e.g. "manan/cxgrd-cli"
+      repoFullName?: string;   // e.g. " name/cxgrd-cli "
       repoOwner?: string;
       repoName?: string;
     };
