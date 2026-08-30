@@ -31,7 +31,7 @@ const releases = [
     badgeColor: "emerald",
     changes: [
       { type: "Whats_new", text: "**CXGRD Actions**: The action performs these steps in the repository workspace:\n- Installs the repository's dependencies.\n- Installs the CXGRD CLI globally.\n- Builds or refreshes the dependency graph with `cxgrd scan`.\n- Runs `cxgrd check --json`. \n- Creates or updates a pull request comment with the risk level and affected files." },
-      { type: "Whats_stable", text: "**Core commands**: The four commands `scan`, `input`, `prompt` and `check`\n **`--json` flag**: `scan`, `input` and `check` support `--json` flag for Actions script and Claude Code plugin\n **Policy Enforcement**: Merge policy enforcements and team dashboard have been improved with UI/UX fixed\n **CI Token**: CI tokens now stay valid for a month, reducing how often users need to revoke and reissue them"},
+      { type: "Whats_stable", text: "**Core commands**: The four commands `scan`, `input`, `prompt` and `check`\n **`--json` flag**: `scan`, `input` and `check` support `--json` flag for Actions script\n **Policy Enforcement**: Merge policy enforcements and team dashboard have been improved with UI/UX fixed\n **CI Token**: CI tokens now stay valid for a month, reducing how often users need to revoke and reissue them"},
       { type: "bug_fix", text: "**GitHookManager**: The batScript and hookScript methods had wrong commands for retrieving git diffs, which are fixed now"}
 
     ],
