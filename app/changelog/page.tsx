@@ -13,13 +13,34 @@ export const metadata: Metadata = {
   }
 };
 
+function renderRichText(text: string) {
+  return text.split(/(\*\*.*?\*\*)/g).map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
 
 const releases = [
   {
-    version: "v0.1.44",
-    date: "August 19, 2026",
+    version: "v1.0.0",
+    date: "August 30, 2026",
     badge: "latest",
     badgeColor: "emerald",
+    changes: [
+      { type: "Whats_new", text: "**CXGRD Actions**: The action performs these steps in the repository workspace:\n- Installs the repository's dependencies.\n- Installs the CXGRD CLI globally.\n- Builds or refreshes the dependency graph with `cxgrd scan`.\n- Runs `cxgrd check --json`. \n- Creates or updates a pull request comment with the risk level and affected files." },
+      { type: "Whats_stable", text: "**Core commands**: The four commands `scan`, `input`, `prompt` and `check`\n **`--json` flag**: `scan`, `input` and `check` support `--json` flag for Actions script and Claude Code plugin\n **Policy Enforcement**: Merge policy enforcements and team dashboard have been improved with UI/UX fixed\n **CI Token**: CI tokens now stay valid for a month, reducing how often users need to revoke and reissue them"},
+      { type: "bug_fix", text: "**GitHookManager**: The batScript and hookScript methods had wrong commands for retrieving git diffs, which are fixed now"}
+
+    ],
+  },
+  {
+    version: "v0.1.44",
+    date: "August 19, 2026",
+    badge: null,
+    badgeColor: null,
     changes: [
       { type: "fixed", text: "fixed init-hooks echo command" }
     ],
@@ -244,6 +265,10 @@ const typeConfig = {
   improved: { label: "Improved", color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
   fixed: { label: "Fixed", color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
   breaking: { label: "Breaking", color: "text-red-400 bg-red-500/10 border-red-500/20" },
+  // these three are for major releases
+  Whats_new: { label: "What's new", color: "text-green-400 bg-white-500/10 border-white-500/20"},
+  Whats_stable: { label: "What's stable", color: "text-green-400 bg-white-500/10 border-white-500/20"},
+  bug_fix: { label: "Bug fixes", color: "text-green-400 bg-white-500/10 border-white-500/20"}
 } as const;
 
 export default function ChangelogPage() {
@@ -317,7 +342,7 @@ export default function ChangelogPage() {
                           <span className={`mt-0.5 shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${config.color}`}>
                             {config.label}
                           </span>
-                          <span className="text-sm leading-relaxed text-slate-300">{change.text}</span>
+                          <span className="text-sm leading-relaxed text-slate-300 whitespace-pre-line">{renderRichText(change.text)}</span>
                         </li>
                       );
                     })}
