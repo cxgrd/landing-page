@@ -191,26 +191,25 @@ export default function HomeClient() {
         )}
       </header>
 
-      <main className="mx-auto w-full max-w-6xl px-6 pb-24 pt-14 sm:pt-20 mt-0 sm:mt-4">
+      <main className="mx-auto w-full max-w-6xl px-6 pb-24 pt-4 sm:pt-8">
 
-        <section id="home" className="mt-10 flex flex-col gap-12 md:flex-row md:items-center md:gap-18">
+        <section id="home" className="mt-0 flex flex-col gap-12 md:flex-row md:items-center md:gap-18">
 
           <div className="flex-1">
             {/* <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-4 py-2 text-xs font-medium text-blue-100">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Automated Architectural Guardrail for AI-Native Development
+              Dependency-aware safety for stateless AI coding assistants
             </div> */}
 
-            <h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
-              Tell your AI what exactly will break {" "}
+            <h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
+              <span className="text-white">Give your AI coding tools the {" "} </span>
               <span className="animated-gradient-text bg-gradient-to-r from-blue-300 via-violet-300 to-cyan-300 bg-clip-text text-transparent">
-                before it even makes a change.
+                architectural context they lack
               </span>
             </h1>
 
             <p className="mt-6 text-pretty text-base leading-relaxed text-slate-300">
-              <span className="font-semibold text-white">cxgrd</span> gives your AI coding tools — Cursor/Claude Code/Windsurf — a map of your codebase, 
-              so they can avoid breaking something three files away.<br/>
+              <span className="font-semibold text-white">cxgrd</span> maps your codebase, computes blast radius before edits, and stops AI agents from breaking downstream code<br/>
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -236,18 +235,14 @@ export default function HomeClient() {
 
           <div className="flex-1 max-w-md w-full">
             <div className="feature-card glass-surface rounded-2xl p-6">
-              <p className="text-s font-semibold uppercase tracking-widest text-blue-300 mb-4">Install for free</p>
-              <p className="text-xs font-semibold tracking-widest text-grey-100 mb-4">v1.0.0</p>
-              <div className="space-y-2">
-                {[
-                  "npm install -g cxgrd",
-                  "cxgrd scan",
-                  "cxgrd check --ci",
-                ].map((cmd) => (
-                  <pre key={cmd} className="rounded bg-[#0a0f1a] px-4 py-2 text-sm text-green-400">
-                    <span className="text-slate-500 select-none">$ </span>{cmd}
-                  </pre>
-                ))}
+              <div className="space-y-2 flex-1 flex justify-center">
+                <Image
+                  src="/example-flow.png"
+                  alt="cursor/claude code: session → editor → local machine vs cxgrd: PR → merge gate → whole org"
+                  width={350}
+                  height={190}
+                  className="h-auto w-full rounded-xl"
+                />
               </div>
               <div className="mt-6 flex items-center gap-3">
                 <button
