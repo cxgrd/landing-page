@@ -202,14 +202,16 @@ export default function HomeClient() {
             </div> */}
 
             <h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-              <span className="text-white">Give your AI coding tools the {" "} </span>
-              <span className="animated-gradient-text bg-gradient-to-r from-blue-300 via-violet-300 to-cyan-300 bg-clip-text text-transparent">
+              <span className="text-white">One Prompt {" "} </span><br/>
+              <span className="text-red-400">14 Affected Files {" "} </span><br/>
+              <span className="text-white">Zero warnings </span>
+              {/* <span className="animated-gradient-text bg-gradient-to-r from-blue-300 via-violet-300 to-cyan-300 bg-clip-text text-transparent">
                 architectural context they lack
-              </span>
+              </span> */}
             </h1>
 
             <p className="mt-6 text-pretty text-base leading-relaxed text-slate-300">
-              <span className="font-semibold text-white">cxgrd</span> maps your codebase, computes blast radius before edits, and stops AI agents from breaking downstream code<br/>
+              <span className="font-semibold text-white">cxgrd</span> maps blast radius across your codebase, so AI tools know what they will break - before they write a line<br/>
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">

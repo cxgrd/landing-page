@@ -15,13 +15,13 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.cxgrd.com"),
 
-  title: "CXGRD | AI Architectural Guardrail for Your Codebase",
+  title: "CXGRD | Give your AI coding tools the architectural context they lack",
   description: "Automated architectural guardrail that maps dependencies and calculates blast radius before AI makes changes. Move fast without breaking your architecture.",
   icons: {
     icon: "/cxgrdlogo.png",
   },
   openGraph: {
-    title: "CXGRD | AI Architectural Guardrail for Your Codebase",
+    title: "CXGRD | Give your AI coding tools the architectural context they lack",
     description: "Automated architectural guardrail that maps dependencies and calculates blast radius before AI makes changes. Move fast without breaking your architecture.",
     url: "https://www.cxgrd.com",
     siteName: "CXGRD",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "CXGRD | AI Architectural Guardrail for Your Codebase",
+    title: "CXGRD | Give your AI coding tools the architectural context they lack",
     description: "Automated architectural guardrail that maps dependencies and calculates blast radius before AI makes changes. Move fast without breaking your architecture.",
     images: ["https://www.cxgrd.com/Homepage.png"],
   },
